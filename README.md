@@ -8,13 +8,15 @@ Data: ABIDE I preprocessed series (C-PAC, CC200 atlas, 200 ROIs), 787 subjects i
 
 8 held-out sites, 564 held-out subjects, five seeds, 1000 bootstrap replicates. R2 values below are pooled over all held-out subjects with 95 percent intervals in brackets.
 
+Status of the neural results: the numbers below come from the first protocol (commit `cf8c9c8`). Two problems found afterwards are fixed in the code but not in the committed numbers, because the neural runs need a GPU and have not been repeated. The conformal intervals of the fine-tunes were calibrated on subjects that had also chosen the learning rates (24 to 46 of the 100 calibration subjects per run, `results/calibration_overlap.json`), and the transductive encoder was fine-tuned with the learning rate chosen for the inductive one. The affected cells are marked where they appear and listed in Limits. The baselines, the probes and the point metrics of the inductive fine-tunes are not affected.
+
 - **Age, leave-one-site-out: ridge on connectivity is the only family with signal, tangent space ahead of correlations.** Pooled R2 0.10 [0.07, 0.13] with 100 labelled subjects and 0.39 [0.35, 0.43] with every training label, against -0.06 [-0.08, -0.06] for the constant predictor at N=100. Vectorised correlations need more labels for the same score (0.25 [0.20, 0.29] against 0.28 [0.24, 0.31] at N=300; tangent minus correlation at N=100 0.05 [0.03, 0.08]) and the RBF kernel is slightly worse than the linear one (-0.04 [-0.05, -0.04] at N=300). The mean age of the held-out site, which uses test labels and is not a model, scores 0.29 [0.21, 0.35]: a sizeable share of the age variance lies between sites.
-- **Masked pretraining does not give a usable predictor at the preset budgets (150 to 300 fine-tuning steps).** At 300 labelled subjects the pretrained all-token probe has pooled R2 -0.06 [-0.07, -0.05] and its random-encoder control -0.06 [-0.07, -0.05]; fine-tuning from the pretrained encoder gives -0.10 [-0.12, -0.09] against -0.08 [-0.10, -0.07] from random weights, and the constant predictor scores -0.05 [-0.06, -0.05]. The pretrained start is a little better than random weights with 50 labels (pooled R2 difference 0.02 [0.01, 0.03], lower error on 6 of 8 sites) and a little worse with 300 (-0.02 [-0.02, -0.01]); the pretrained mean-token probe beats its random-encoder control by 0.03 [0.01, 0.05] at N=50 and by 0.00 [-0.00, 0.00] at N=300. Every neural arm stays at or below the constant predictor at every label count.
-- **Seeing the held-out site's series does not help.** The transductive encoder (pretrained on every subject, labels unused) fine-tunes worse than the inductive one (-0.10 [-0.11, -0.08] at N=50, -0.04 [-0.04, -0.03] at N=300, pooled R2), and its probes are not better than the inductive probes.
-- **A longer fine-tune does not help, it hurts.** With 300 labels and 1000 steps at a fixed rate of 3e-4 on 8 held-out sites (MAX_MUN, NYU, PITT, TRINITY, UCLA_1, UM_1, USM, YALE), pooled R2 is -0.26 [-0.31, -0.23] from random weights and -0.38 [-0.44, -0.33] from the transductive encoder, below the 300-step runs (-0.08 [-0.10, -0.07] and -0.14 [-0.16, -0.12]) and below the constant predictor (-0.05 [-0.06, -0.05]); tangent + ridge scores 0.28 [0.24, 0.31] on the same sites. The pretrained start is worse than random weights here (mean absolute error, transductive minus scratch, 0.33 [0.25, 0.41] years; lower error on 3 of 8 sites). A one-site check on NYU, where the transductive start looked better after 1500 steps, did not carry over to the other sites.
+- **Masked pretraining does not give a usable predictor at the preset budgets (150 to 300 fine-tuning steps).** At 300 labelled subjects the pretrained all-token probe has pooled R2 -0.06 [-0.07, -0.05] and its random-encoder control -0.06 [-0.07, -0.05]; fine-tuning from the pretrained encoder gives -0.10 [-0.12, -0.09] against -0.08 [-0.10, -0.07] from random weights, and the constant predictor scores -0.05 [-0.06, -0.05]. The pretrained start is a little better than random weights with 50 labels (pooled R2 difference 0.02 [0.01, 0.03], lower error on 6 of 8 sites) and a little worse with 300 (-0.02 [-0.02, -0.01]); the pretrained mean-token probe beats its random-encoder control by 0.03 [0.01, 0.05] at N=50 and by 0.00 [-0.00, 0.00] at N=300. Every neural arm stays at or below the constant predictor at every label count. The fine-tune learning rates were chosen once per fold, not inside each run as the ridge penalties are; Limits says in which direction that tilts the comparison with the baselines.
+- **Seeing the held-out site's series did not help, at the learning rate of the inductive start.** The transductive encoder (pretrained on every subject, labels unused) fine-tuned with the rate chosen for the inductive encoder does worse than the inductive one (-0.10 [-0.11, -0.08] at N=50, -0.04 [-0.04, -0.03] at N=300, pooled R2). No rate was chosen for the transductive start itself, so a start that needs another rate may be understated; the tuned comparison (`ft_trans`) is implemented and has not been run. Its probes, whose ridge penalty is chosen on the labelled subjects like every other probe, are not better than the inductive probes.
+- **A longer fine-tune does not help, it hurts.** With 300 labels and 1000 steps at one fixed rate of 3e-4 for both starts (not tuned for either) on 8 held-out sites (MAX_MUN, NYU, PITT, TRINITY, UCLA_1, UM_1, USM, YALE), pooled R2 is -0.26 [-0.31, -0.23] from random weights and -0.38 [-0.44, -0.33] from the transductive encoder, below the 300-step runs (-0.08 [-0.10, -0.07] and -0.14 [-0.16, -0.12]) and below the constant predictor (-0.05 [-0.06, -0.05]); tangent + ridge scores 0.28 [0.24, 0.31] on the same sites. At that rate the pretrained start is worse than random weights (mean absolute error, transductive minus scratch, 0.33 [0.25, 0.41] years; lower error on 3 of 8 sites). A one-site check on NYU, where the transductive start looked better after 1500 steps, did not carry over to the other sites.
 - **FIQ is not predicted by any arm.** The best pooled R2 is 0.02 [-0.01, 0.05] (tangent + ridge, every label), an interval that includes zero; the constant predictor scores -0.02 [-0.03, -0.01] and the neural arms are below zero (fine-tune from pretrained at N=300: -0.03 [-0.04, -0.02]).
 - **Cost of a new site (baselines only).** At N=100 on the same subjects, tangent + ridge has pooled R2 0.22 [0.19, 0.24] for age when the test subjects' sites are also in training and 0.10 [0.07, 0.13] leave-one-site-out; the site-mean predictor, which needs the site label, scores 0.20 [0.10, 0.29] in-site, close to the in-site ridge, so a large part of the in-site score is site identity. For FIQ the figures are -0.00 [-0.02, 0.01] in-site and -0.02 [-0.04, -0.00] leave-one-site-out. The neural arms were not run in-site.
-- **Conformal intervals (90 percent target).** Pooled coverage on the held-out sites is 0.89 [0.87, 0.91] for the constant predictor and 0.89 [0.87, 0.91] for fine-tuning from the pretrained encoder at N=100 (age). For tangent + ridge it falls short of the target as labels grow: 0.89 [0.87, 0.91] at N=100, 0.87 [0.85, 0.90] at N=300 and 0.86 [0.84, 0.89] with every label, while the mean width shrinks from 19.6 to 14.7 years (constant predictor: 22.3). FIQ intervals cover 0.88 [0.86, 0.91] at N=100 and are about as wide as the constant predictor's (47.7 against 48.2 IQ points).
+- **Conformal intervals (90 percent target).** The constant predictor, the baselines and the probes calibrate on 100 training-site subjects that are not among the labelled ones and choose nothing on them. Pooled coverage on the held-out sites is 0.89 [0.87, 0.91] for the constant predictor; for tangent + ridge it falls short of the target as labels grow: 0.89 [0.87, 0.91] at N=100, 0.87 [0.85, 0.90] at N=300 and 0.86 [0.84, 0.89] with every label, while the mean width shrinks from 19.6 to 14.7 years (constant predictor: 22.3). FIQ intervals cover 0.88 [0.86, 0.91] at N=100 and are about as wide as the constant predictor's (47.7 against 48.2 IQ points). The coverage of the fine-tunes is not reported as a result: their calibration subjects had also chosen the learning rates, which breaks the independence that split conformal needs. The measured values are kept in a separate table for reference.
 - **Confounds.** Site can be read from the features: ridge regression on one-hot site labels gets the site of 0.76 of the 787 subjects right from tangent features in 5-fold cross-validation (majority share 0.22, 18 sites), and the lag-1 autocorrelation alone gives 0.30. Our tangent embedding agrees with nilearn to a relative Frobenius difference of 5.5e-05 on 60 subjects.
 
 ### Cohort
@@ -114,7 +116,7 @@ Differences use the same resampled subjects for both arms (pooled R2, first arm 
 |---|---|---|---|---|---|---|
 | fine-tune from pretrained minus fine-tune from scratch | 0.02 [0.01, 0.03] | 0.01 [-0.00, 0.02] | -0.02 [-0.02, -0.01] | -0.01 [-0.02, -0.00] | -0.00 [-0.01, 0.00] | -0.00 [-0.01, 0.00] |
 | fine-tune from pretrained minus tangent + ridge | -0.10 [-0.13, -0.09] | -0.19 [-0.22, -0.16] | -0.38 [-0.41, -0.35] | -0.03 [-0.04, -0.01] | -0.02 [-0.03, -0.01] | -0.05 [-0.07, -0.03] |
-| fine-tune, transductive minus fine-tune from pretrained | -0.10 [-0.11, -0.08] | -0.06 [-0.07, -0.05] | -0.04 [-0.04, -0.03] | -0.02 [-0.03, -0.01] | -0.01 [-0.02, -0.01] | -0.00 [-0.01, 0.00] |
+| fine-tune, transductive (pretrained rate) minus fine-tune from pretrained | -0.10 [-0.11, -0.08] | -0.06 [-0.07, -0.05] | -0.04 [-0.04, -0.03] | -0.02 [-0.03, -0.01] | -0.01 [-0.02, -0.01] | -0.00 [-0.01, 0.00] |
 | fine-tune from scratch minus tangent + ridge | -0.12 [-0.14, -0.11] | -0.20 [-0.22, -0.18] | -0.36 [-0.40, -0.33] | -0.02 [-0.03, -0.01] | -0.02 [-0.03, -0.01] | -0.04 [-0.06, -0.02] |
 | probe, all tokens, pretrained minus probe, all tokens, random encoder | -0.01 [-0.02, 0.00] | -0.02 [-0.03, -0.01] | -0.00 [-0.01, 0.00] | -0.01 [-0.03, -0.00] | -0.02 [-0.03, -0.01] | -0.01 [-0.01, -0.00] |
 | probe, all tokens, pretrained minus tangent + ridge | -0.09 [-0.12, -0.07] | -0.18 [-0.22, -0.15] | -0.34 [-0.37, -0.31] | -0.03 [-0.05, -0.01] | -0.04 [-0.06, -0.02] | -0.05 [-0.07, -0.03] |
@@ -128,10 +130,10 @@ Differences use the same resampled subjects for both arms (pooled R2, first arm 
 |---|---|---|---|---|---|---|
 | fine-tune from pretrained beats fine-tune from scratch | 6/8 | 5/8 | 3/8 | 3/8 | 4/8 | 3/8 |
 | fine-tune from pretrained beats tangent + ridge | 0/8 | 0/8 | 0/8 | 2/8 | 2/8 | 1/8 |
-| fine-tune, transductive beats fine-tune from pretrained | 1/8 | 2/8 | 3/8 | 2/8 | 2/8 | 3/8 |
+| fine-tune, transductive (pretrained rate) beats fine-tune from pretrained | 1/8 | 2/8 | 3/8 | 2/8 | 2/8 | 3/8 |
 | fine-tune from scratch beats tangent + ridge | 0/8 | 0/8 | 0/8 | 2/8 | 1/8 | 1/8 |
 | fine-tune from scratch, 1000 steps beats fine-tune from scratch | - | - | 2/8 | - | - | - |
-| fine-tune from transductive encoder, 1000 steps beats fine-tune, transductive | - | - | 2/8 | - | - | - |
+| fine-tune from transductive encoder, 1000 steps beats fine-tune, transductive (pretrained rate) | - | - | 2/8 | - | - | - |
 | fine-tune from transductive encoder, 1000 steps beats fine-tune from scratch, 1000 steps | - | - | 3/8 | - | - | - |
 | fine-tune from transductive encoder, 1000 steps beats tangent + ridge | - | - | 0/8 | - | - | - |
 | probe, all tokens, pretrained beats probe, all tokens, random encoder | 2/8 | 2/8 | 3/8 | 3/8 | 2/8 | 3/8 |
@@ -144,25 +146,31 @@ Differences use the same resampled subjects for both arms (pooled R2, first arm 
 
 ### Transductive pretraining
 
-The transductive encoder was pretrained once on every subject (labels unused), so it has seen the unlabelled series of the held-out site. It is a reference, not an inductive result. Probes and fine-tuning from it use the same labelled subsets as the other arms (fine-tuning with the learning rate chosen for the inductive encoder).
+The transductive encoder was pretrained once on every subject (labels unused), so it has seen the unlabelled series of the held-out site. It is a reference, not an inductive result. Probes and fine-tuning from it use the same labelled subsets as the other arms. The fine-tune rows reuse the learning rate chosen for the inductive encoder (`ft_pre_trans`); no rate was chosen for the transductive start itself, so a start that needs another rate is understated here. The code now searches that rate with the grid and the budget of the pretrained start (`ft_trans`) and keeps the reused rate as an ablation; those runs have not been made.
+
+Age, pooled R2:
 
 | arm | N=50 | N=100 | N=300 |
 |---|---|---|---|
 | probe, mean token, transductive | -0.11 [-0.14, -0.10] | -0.10 [-0.11, -0.09] | -0.09 [-0.10, -0.07] |
 | probe, all tokens, transductive | -0.11 [-0.13, -0.09] | -0.09 [-0.11, -0.08] | -0.08 [-0.10, -0.07] |
-| fine-tune, transductive | -0.19 [-0.22, -0.17] | -0.15 [-0.18, -0.14] | -0.14 [-0.16, -0.12] |
+| fine-tune, transductive (pretrained rate) | -0.19 [-0.22, -0.17] | -0.15 [-0.18, -0.14] | -0.14 [-0.16, -0.12] |
 | fine-tune from pretrained | -0.09 [-0.11, -0.08] | -0.09 [-0.11, -0.08] | -0.10 [-0.12, -0.09] |
+
+FIQ, pooled R2:
 
 | arm | N=50 | N=100 | N=300 |
 |---|---|---|---|
 | probe, mean token, transductive | -0.07 [-0.10, -0.05] | -0.05 [-0.07, -0.04] | -0.03 [-0.04, -0.02] |
 | probe, all tokens, transductive | -0.08 [-0.11, -0.06] | -0.06 [-0.08, -0.04] | -0.02 [-0.04, -0.02] |
-| fine-tune, transductive | -0.08 [-0.11, -0.06] | -0.05 [-0.08, -0.04] | -0.03 [-0.05, -0.02] |
+| fine-tune, transductive (pretrained rate) | -0.08 [-0.11, -0.06] | -0.05 [-0.08, -0.04] | -0.03 [-0.05, -0.02] |
 | fine-tune from pretrained | -0.05 [-0.08, -0.04] | -0.04 [-0.06, -0.03] | -0.03 [-0.04, -0.02] |
 
 ### Conformal intervals
 
-Split conformal intervals (absolute residual, calibration on 100 training-site subjects that are not among the labelled ones). Cells show pooled coverage of the 90 percent interval on the held-out sites and, in brackets, the mean width in years (age) or IQ points (FIQ).
+Split conformal intervals (absolute residual, calibration on 100 training-site subjects that are not among the labelled ones). Cells show pooled coverage of the 90 percent interval on the held-out sites and, in brackets, the mean width in years (age) or IQ points (FIQ). The fine-tune rows are in separate tables below, because their calibration subjects were not independent of the learning-rate choice.
+
+Age:
 
 | arm | N=50 | N=100 | N=300 | N=all |
 |---|---|---|---|---|
@@ -174,11 +182,10 @@ Split conformal intervals (absolute residual, calibration on 100 training-site s
 | probe, all tokens, random encoder | 0.89 (22.9) | 0.89 (22.5) | 0.89 (22.3) | - |
 | probe, mean token, pretrained | 0.89 (22.6) | 0.90 (22.7) | 0.89 (22.3) | - |
 | probe, all tokens, pretrained | 0.89 (22.6) | 0.90 (22.6) | 0.89 (22.3) | - |
-| fine-tune from scratch | 0.89 (22.5) | 0.89 (22.4) | 0.89 (22.4) | - |
-| fine-tune from pretrained | 0.89 (22.7) | 0.89 (22.4) | 0.89 (22.3) | - |
 | probe, mean token, transductive | 0.89 (23.0) | 0.89 (22.4) | 0.89 (22.3) | - |
 | probe, all tokens, transductive | 0.89 (22.8) | 0.89 (22.4) | 0.89 (22.3) | - |
-| fine-tune, transductive | 0.89 (22.8) | 0.89 (22.5) | 0.89 (22.3) | - |
+
+FIQ:
 
 | arm | N=50 | N=100 | N=300 | N=all |
 |---|---|---|---|---|
@@ -190,11 +197,28 @@ Split conformal intervals (absolute residual, calibration on 100 training-site s
 | probe, all tokens, random encoder | 0.89 (48.6) | 0.89 (47.9) | 0.89 (48.1) | - |
 | probe, mean token, pretrained | 0.89 (48.8) | 0.89 (47.9) | 0.89 (48.0) | - |
 | probe, all tokens, pretrained | 0.88 (49.0) | 0.88 (47.7) | 0.88 (47.8) | - |
-| fine-tune from scratch | 0.89 (48.2) | 0.89 (48.4) | 0.89 (47.9) | - |
-| fine-tune from pretrained | 0.88 (48.1) | 0.89 (48.4) | 0.89 (47.9) | - |
 | probe, mean token, transductive | 0.88 (48.7) | 0.88 (47.8) | 0.89 (48.1) | - |
 | probe, all tokens, transductive | 0.88 (49.0) | 0.88 (47.9) | 0.89 (47.9) | - |
-| fine-tune, transductive | 0.88 (48.5) | 0.89 (48.6) | 0.89 (47.9) | - |
+
+Fine-tune rows, first protocol, for reference only. The 100 calibration subjects of a run were drawn from every training subject, and 24 to 46 of them (mean 35.9 over the 40 fold-seed runs; 7 to 22 among the 100 labelled subjects of the learning-rate choice, 13 to 25 in its validation site) had also chosen the learning rates. Split conformal needs calibration subjects that took no part in the model or its tuning, so these coverages are not a conformal result. They are kept to show the numbers that the first run gave, not to support a claim. The code now calibrates the fine-tunes on the 54 to 76 remaining subjects.
+
+Age:
+
+| arm | N=50 | N=100 | N=300 |
+|---|---|---|---|
+| fine-tune from scratch | 0.89 (22.5) | 0.89 (22.4) | 0.89 (22.4) |
+| fine-tune from pretrained | 0.89 (22.7) | 0.89 (22.4) | 0.89 (22.3) |
+| fine-tune, transductive (pretrained rate) | 0.89 (22.8) | 0.89 (22.5) | 0.89 (22.3) |
+
+FIQ:
+
+| arm | N=50 | N=100 | N=300 |
+|---|---|---|---|
+| fine-tune from scratch | 0.89 (48.2) | 0.89 (48.4) | 0.89 (47.9) |
+| fine-tune from pretrained | 0.88 (48.1) | 0.89 (48.4) | 0.89 (47.9) |
+| fine-tune, transductive (pretrained rate) | 0.88 (48.5) | 0.89 (48.6) | 0.89 (47.9) |
+
+The figure shows the baselines and the probes only.
 
 ![coverage](results/fig_coverage.png)
 
@@ -257,7 +281,7 @@ The second phase (`scripts/run_long.py`) tested this on every held-out site: 100
 | site mean (constant) | -0.05 [-0.06, -0.05] | -0.90 [-1.20, -0.76] | 5.51 [5.16, 5.90] | 0.00 [0.00, 0.00] |
 | tangent + ridge | 0.28 [0.24, 0.31] | -0.11 [-0.28, -0.02] | 4.42 [4.13, 4.73] | 0.57 [0.51, 0.62] |
 | fine-tune from scratch | -0.08 [-0.10, -0.07] | -0.95 [-1.26, -0.80] | 5.56 [5.21, 5.95] | -0.03 [-0.09, 0.02] |
-| fine-tune, transductive | -0.14 [-0.16, -0.12] | -1.06 [-1.39, -0.90] | 5.67 [5.32, 6.08] | -0.05 [-0.10, 0.01] |
+| fine-tune, transductive (pretrained rate) | -0.14 [-0.16, -0.12] | -1.06 [-1.39, -0.90] | 5.67 [5.32, 6.08] | -0.05 [-0.10, 0.01] |
 | fine-tune from scratch, 1000 steps | -0.26 [-0.31, -0.23] | -1.57 [-2.09, -1.33] | 5.97 [5.60, 6.38] | -0.07 [-0.14, -0.00] |
 | fine-tune from transductive encoder, 1000 steps | -0.38 [-0.44, -0.33] | -2.54 [-3.49, -2.10] | 6.30 [5.93, 6.70] | -0.06 [-0.12, 0.01] |
 
@@ -266,11 +290,11 @@ Paired differences (first minus second, same resampled subjects):
 | difference (age) | pooled R2 | macro R2 | pooled MAE | macro Spearman |
 |---|---|---|---|---|
 | fine-tune from scratch, 1000 steps minus fine-tune from scratch | -0.18 [-0.21, -0.16] | -0.62 [-0.85, -0.51] | 0.41 [0.35, 0.47] | -0.04 [-0.10, 0.03] |
-| fine-tune from transductive encoder, 1000 steps minus fine-tune, transductive | -0.25 [-0.29, -0.21] | -1.48 [-2.17, -1.14] | 0.63 [0.54, 0.72] | -0.02 [-0.07, 0.05] |
+| fine-tune from transductive encoder, 1000 steps minus fine-tune, transductive (pretrained rate) | -0.25 [-0.29, -0.21] | -1.48 [-2.17, -1.14] | 0.63 [0.54, 0.72] | -0.02 [-0.07, 0.05] |
 | fine-tune from transductive encoder, 1000 steps minus fine-tune from scratch, 1000 steps | -0.12 [-0.15, -0.09] | -0.96 [-1.44, -0.71] | 0.33 [0.25, 0.41] | 0.01 [-0.05, 0.07] |
 | fine-tune from transductive encoder, 1000 steps minus tangent + ridge | -0.66 [-0.73, -0.60] | -2.43 [-3.29, -2.04] | 1.88 [1.69, 2.06] | -0.63 [-0.70, -0.54] |
 
-Reading: 8 sites, 1000 steps at a fixed rate. Both starts end below the constant predictor in pooled R2 and the transductive start is the worse of the two (pooled mean absolute error, transductive minus scratch, 0.33 [0.25, 0.41] years). Training longer also made the random-weight network worse than at 300 steps (pooled R2 -0.18 [-0.21, -0.16], mean absolute error 0.41 [0.35, 0.47] years), which points to overfitting to the labelled subjects of the training sites rather than to under-training. The rank correlation inside held-out sites stays near zero for both (macro Spearman -0.07 [-0.14, -0.00] from random weights, -0.06 [-0.12, 0.01] from the transductive encoder) while tangent + ridge reaches 0.57 [0.51, 0.62]. These runs use the transductive encoder, so they describe the best case for pretraining, not an inductive encoder.
+Reading: 8 sites, 1000 steps at one fixed rate that was tuned for neither start. Both starts end below the constant predictor in pooled R2 and the transductive start is the worse of the two at that rate (pooled mean absolute error, transductive minus scratch, 0.33 [0.25, 0.41] years). Training longer also made the random-weight network worse than at 300 steps (pooled R2 -0.18 [-0.21, -0.16], mean absolute error 0.41 [0.35, 0.47] years), which points to overfitting to the labelled subjects of the training sites rather than to under-training. The rank correlation inside held-out sites stays near zero for both (macro Spearman -0.07 [-0.14, -0.00] from random weights, -0.06 [-0.12, 0.01] from the transductive encoder) while tangent + ridge reaches 0.57 [0.51, 0.62]. These runs use the transductive encoder, so they describe the best case for pretraining, not an inductive encoder.
 
 ## What is in the repo
 
@@ -278,11 +302,11 @@ Reading: 8 sites, 1000 steps at a fixed rate. Both starts end below the constant
 - `src/connpre/features.py`: correlation vectors, Ledoit-Wolf covariances, Karcher mean and tangent space (own code, checked against nilearn in `results/tangent_check.json`).
 - `src/connpre/ridge.py`: dual kernel ridge with a free intercept, group-wise choice of alpha, RBF kernel ridge.
 - `src/connpre/protocol.py`: leave-one-site-out folds, nested site-stratified label subsets, calibration draws, inner validation split.
-- `src/connpre/model.py`, `pretrain.py`, `finetune.py`, `neural.py`: ROI-token transformer, masked pretraining, probes and fine-tuning, the per-fold runner.
+- `src/connpre/model.py`, `pretrain.py`, `finetune.py`, `neural.py`: ROI-token transformer, masked pretraining, probes and fine-tuning, the per-fold runner (learning-rate choice, calibration subjects of the fine-tunes, inductive and transductive starts).
 - `src/connpre/conformal.py`, `metrics.py`, `summary.py`, `report.py`, `results.py`: split conformal intervals, metrics, bootstrap, tables.
-- `scripts/`: `fetch_data.py` (download and cohort), `run_baselines.py`, `run_neural.py`, `run_long.py` (longer fine-tunes), `long_finetune_check.py` (one-site check of the fine-tuning length), `summarise.py`, `report.py`, `figures.py`, `check_tangent.py`, `site_decoding.py`, `run_all.sh`.
-- `results/`: everything cited above. Per-subject predictions are not kept.
-- `tests/`: unit and end-to-end tests on synthetic series, no download, a few seconds on a laptop CPU.
+- `scripts/`: `fetch_data.py` (download and cohort), `run_baselines.py`, `run_neural.py`, `run_long.py` (longer fine-tunes), `long_finetune_check.py` (one-site check of the fine-tuning length), `calibration_overlap.py` (counts the calibration subjects that also chose the learning rates), `summarise.py`, `report.py`, `figures.py`, `check_tangent.py`, `site_decoding.py`, `run_all.sh`.
+- `results/`: everything cited above. Per-subject predictions are not kept, so the conformal intervals of the fine-tunes cannot be recomputed without retraining.
+- `tests/`: unit and end-to-end tests on synthetic series, no download, a few seconds on a laptop CPU; `conftest.py` makes them run against this checkout.
 - `LICENSE`: Apache-2.0.
 
 ## Reproduce
@@ -306,6 +330,8 @@ bash scripts/run_all.sh /content/work
 
 `run_all.sh` fetches ABIDE through nilearn, runs the baselines, pretrains, runs the neural arms on two processes, the one-site fine-tuning check and the longer fine-tunes, then writes `results/` and the tables. The tables printed by `python scripts/report.py` are the ones pasted above. The numbers above come from the same commands run in pieces (the baselines on a CPU runtime, the neural arms and the longer fine-tunes on a T4 session); `run_all.sh` chains them in one script. The wall time of every fold is in `results/timing_seconds.json` (two folds shared the GPU at a time).
 
+The neural tables above were produced before the protocol fixes of the status note; the code that produced them is at commit `cf8c9c8`. To refresh them, run the same command on the current code: the baselines use the same seeds and draws and give the same numbers, the neural arms vary slightly with GPU nondeterminism, the fine-tune intervals and the transductive rows change, and `results/calibration_overlap.json` is rewritten. The current code does more fine-tuning than the first run (a rate search and a fit for the transductive start), so the neural folds take longer than the times in `results/timing_seconds.json`.
+
 ## Method notes
 
 **Cohort.** `nilearn.datasets.fetch_abide_pcp(derivatives=["rois_cc200"], pipeline="cpac", band_pass_filtering=True, global_signal_regression=False, quality_checked=True)` returns 871 subjects. 60 have no FIQ value and 24 have fewer than 116 frames, leaving 787 subjects in 18 sites (`results/cohort.json`, `results/site_table.csv`). Every subject enters with its first 116 frames, each ROI z-scored over those frames. Eight sites have at least 40 subjects and are held out one at a time; the other ten always train.
@@ -322,25 +348,28 @@ bash scripts/run_all.sh /content/work
 
 **Encoder.** One token per ROI: its window of 64 frames is linearly embedded and a learned ROI embedding is added; 200 tokens go through 5 pre-norm attention blocks (dim 128, 4 heads, MLP 512), about 1.03M parameters (`results/model.json`). Pretraining replaces 50 percent of the ROI tokens by a mask token and reconstructs their windows with a linear decoder (mean squared error on the masked tokens, AdamW, cosine schedule, fp16 autocast, 3000 steps of 64 random windows). The training subjects of the fold only are used; 48 of them are kept out of the loss to monitor the masked error, and the held-out site is scored for monitoring but never trained on. The transductive encoder is pretrained once on every subject but the monitoring ones, labels unused, and is reported in separate rows.
 
-**Probes and fine-tuning.** Probes are ridge regressions (same alpha rule as the baselines) on token embeddings averaged over four windows: the mean over ROIs (128 values) or all tokens (25,600 values), standardised with training-site statistics. A random-weight encoder gives the control rows. Fine-tuning trains the encoder and a linear head on standardised labels with AdamW for 150, 200 and 300 steps (50, 100, 300 labels), dropout 0.1, batches of up to 32 random windows. The learning rate is chosen per fold, arm and target from three values on an inner validation site (the largest training site, 100 labelled subjects from the other training sites, one seed); the transductive twin reuses the pretrained choice.
+**Probes and fine-tuning.** Probes are ridge regressions (same alpha rule as the baselines) on token embeddings averaged over four windows: the mean over ROIs (128 values) or all tokens (25,600 values), standardised with training-site statistics. A random-weight encoder gives the control rows. Fine-tuning trains the encoder and a linear head on standardised labels with AdamW for 150, 200 and 300 steps (50, 100, 300 labels), dropout 0.1, batches of up to 32 random windows. The learning rate is chosen per fold, arm and target from three values: fine-tune for 200 steps on 100 labelled subjects drawn from the training sites other than the largest one (one seed), score on the largest training site (the validation site, 82 to 172 subjects) and keep the lowest mean squared error. The first run used the pretrained choice for the transductive twin (`ft_pre_trans`). The current code also searches the transductive start on its own with the same grid and budget (`ft_trans`), keeps `ft_pre_trans` as an ablation, and lets the two share one fit when they pick the same rate.
 
 **Longer fine-tunes.** After the short-budget runs looked flat, a second phase (`scripts/run_long.py`) fine-tunes for 1000 steps, age only, with 300 labelled subjects, from random weights and from the transductive encoder, with the same labelled subsets and seeds as the main arms and one fixed learning rate of 3e-4 (the largest value of the pretrained grid, and the best of the two tried in the one-site check below). The per-fold inductive encoders were not stored, so this phase uses the transductive encoder only and is labelled that way. `scripts/long_finetune_check.py` is a one-site check of the fine-tuning length (held-out site NYU, 300 labels, seed 0, learning rates 1e-4 and 3e-4, 300 and 1500 steps).
 
 **In-site reference.** Three random folds stratified by site, so every site is in training and in test; the summary keeps the test subjects of the eight large sites, which are the subjects scored in the leave-one-site-out table. They were run for the baselines only; the neural arms have no in-site rows.
 
-**Statistics.** Metrics are computed on predictions of the held-out sites pooled over the eight folds (pooled R2, pooled MAE) and per site then averaged (macro R2, macro Spearman). Intervals are 95 percent percentile bootstrap intervals that resample subjects inside each held-out site (1000 replicates), take the mean over the five seeds inside each replicate, and use the same resampled subjects for every arm, so differences are paired. Split conformal intervals use absolute residuals on 100 calibration subjects drawn from the training sites (disjoint from the labelled ones and not counted in N), for levels 0.8 and 0.9.
+**Statistics.** Metrics are computed on predictions of the held-out sites pooled over the eight folds (pooled R2, pooled MAE) and per site then averaged (macro R2, macro Spearman). Intervals are 95 percent percentile bootstrap intervals that resample subjects inside each held-out site (1000 replicates), take the mean over the five seeds inside each replicate, and use the same resampled subjects for every arm, so differences are paired. Split conformal intervals use absolute residuals on 100 calibration subjects drawn from the training sites (disjoint from the labelled ones and not counted in N), for levels 0.8 and 0.9. The baselines and the probes use all 100. The current code calibrates the fine-tunes on those of the 100 that took no part in choosing their learning rates (neither the 100 labelled subjects nor the validation site of that choice), 54 to 76 subjects per run (`results/calibration_overlap.json`); the first run used all 100 for the fine-tunes too.
 
 **Pooled and macro R2.** Pooled R2 divides by the variance of all held-out subjects together, so it rewards models that also get site-level offsets right. Macro R2 divides by the variance inside each site and is dominated by the offset for sites with a narrow age range (UCLA_1, UM_1, YALE). Both are shown. This choice of headline was made after a one-fold baseline check and before any neural run.
 
 ## Limits
 
+- Two neural results come from the first protocol and are not sound as they stand. The conformal coverages of the fine-tunes used calibration subjects that had also chosen the learning rates (24 to 46 of 100 per run); and the transductive fine-tune used the learning rate of the inductive start, so "seeing the held-out site's series did not help" holds at that rate only. The code now fixes both (calibration disjoint from the rate choice, a rate search for the transductive start with the reused rate as an ablation) and tests pin it, but the neural runs were not repeated. Running `bash scripts/run_all.sh /content/work` on a GPU regenerates the neural numbers with the new protocol.
+- Tuning is not symmetric between the arms. The ridge penalty of the baselines and the probes is chosen inside each run from its own N labelled subjects (site-grouped cross-validation). The learning rate of the fine-tunes was chosen once per fold from 100 labelled subjects of the training sites plus the labels of the validation site (82 to 172 subjects), for 200 steps, and reused at every label count. That gave the fine-tunes more labels than the N=50 and N=100 runs of the baselines have, which favours them, and a budget different from the 300 steps of N=300, which probably disfavours them there. A symmetric protocol (every arm tuned inside the run from its own labels) was not run because it multiplies the number of fine-tunes.
+- Split conformal assumes that calibration and test subjects are exchangeable. The test subjects come from a site that is not in training, and the encoder, the feature standardisation and the tangent mean were fit with the series (not the labels) of the calibration subjects but not of the held-out site (the transductive encoder excepted). The coverages are an empirical check under a site shift, not a guarantee, and tangent + ridge falls short of the target.
 - One pretraining run per fold (and one transductive run): the seeds change the labelled subsets, the calibration draw, the head and the fine-tuning batches, so the intervals do not include variation between pretraining runs.
 - Eight held-out sites. The bootstrap resamples subjects inside each site; it says nothing about how results would move with other sites. The count of sites won per pair (`results/summary.json`, key `site_wins`) is the coarser but site-level view.
 - One atlas (CC200), one preprocessing pipeline (C-PAC, band-pass filtered, no global signal regression) and only the first 116 frames of every subject. Longer series, other atlases or global signal regression could change the ranking.
 - FIQ comes from different instruments and test versions across sites and is not harmonised; the repetition time is not modelled.
-- Hyperparameters are searched on small grids (three learning rates per fine-tune arm, 13 ridge penalties, three RBF scales); the number of steps, the mask ratio, the window and the model size were fixed in advance. The fine-tuning budget of the main arms (150 to 300 steps) is short; the 1000-step phase made the networks worse, but it used one fixed rate and no early stopping, so a tuned longer schedule could behave differently.
+- Hyperparameters are searched on small grids (three learning rates per fine-tune arm, chosen once per fold, 13 ridge penalties, three RBF scales); the number of steps, the mask ratio, the window and the model size were fixed in advance. The fine-tuning budget of the main arms (150 to 300 steps) is short; the 1000-step phase made the networks worse, but it used one fixed rate and no early stopping, so a tuned longer schedule could behave differently.
 - The longer fine-tunes use the transductive encoder (the per-fold encoders were not stored), age only, 300 labels, one fixed learning rate of 3e-4 that was also the better of the two tried in the one-site check on NYU, whose held-out labels were looked at for that choice.
 - The baselines read 116 frames per subject while the transformer sees windows of 64 frames: there is no window-matched baseline.
 - The neural arms were not run in-site, so the in-site comparison is a baseline comparison.
-- The 100 calibration subjects of the conformal intervals are extra labelled subjects that are not counted in N, so the intervals are what a larger labelled budget would give, not what 50 labels alone would give.
+- The 100 calibration subjects of the conformal intervals are extra labelled subjects that are not counted in N, so the intervals are what a larger labelled budget would give, not what 50 labels alone would give. The fine-tunes now calibrate on 54 to 76 of them.
 - The optional variational representation on vectorised connectivity was not run.
