@@ -69,6 +69,13 @@ def test_summary_is_strict_json_and_deterministic(tmp_path):
     json.dumps(a, allow_nan=False)
 
 
+def test_restricting_sites_keeps_only_their_subjects(tmp_path):
+    folds = build(tmp_path)
+    summary = summarise_mode(folds, n_boot=50, pairs=(), restrict_sites={"A", "B"})
+    assert summary["n_subjects"] == 110
+    assert "100" in summary["arms"]["age"]["good"]
+
+
 def test_clean_replaces_non_finite_numbers():
     assert clean({"a": float("nan"), "b": [1.0], "c": {"d": float("inf")}}) == {
         "a": None,

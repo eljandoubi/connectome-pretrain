@@ -83,12 +83,33 @@ def pair_summary(a: dict, b: dict, parts_point: list, parts_boot: list) -> dict:
     return {m: stat(pa[m] - pb[m], ba[m] - bb[m]) for m in METRICS}
 
 
+def restrict(pool: dict, sites) -> dict:
+    """Keep only the subjects whose site is in sites."""
+    keep = np.isin(pool["site"], list(sites))
+    return {
+        "y": pool["y"][keep],
+        "p": pool["p"][:, keep],
+        "q": pool["q"][:, keep],
+        "site": pool["site"][keep],
+    }
+
+
 def summarise_mode(
-    folds: list[dict], n_boot: int = 1000, seed: int = 0, pairs=PAIRS
+    folds: list[dict],
+    n_boot: int = 1000,
+    seed: int = 0,
+    pairs=PAIRS,
+    restrict_sites=None,
 ) -> dict:
-    """Summary of every (arm, target, n) and of the paired differences."""
+    """Summary of every (arm, target, n) and of the paired differences.
+
+    restrict_sites keeps only the held-out subjects of those sites, so two
+    protocols can be compared on the same subjects.
+    """
     keys = keys_of(folds)
     cache = {k: pooled(folds, *k) for k in keys}
+    if restrict_sites is not None:
+        cache = {k: restrict(v, restrict_sites) for k, v in cache.items()}
     site = cache[keys[0]]["site"]
     parts_point = site_parts(site)
     parts_boot = site_parts(site, n_boot, np.random.default_rng(seed))

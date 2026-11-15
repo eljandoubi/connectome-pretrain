@@ -32,10 +32,13 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
 
     summary, rows, curves, lrs, timing = {}, [], {}, {}, {}
+    held_out = None
     for mode in ("loso", "insite"):
         folds = load_merged(args.runs, mode)
         if not folds:
             continue
+        if mode == "loso":
+            held_out = {f["fold"] for f in folds}
         for f in folds:
             rows += f["meta"]["rows"]
             extra = f["meta"]["extra"]
@@ -45,7 +48,10 @@ def main():
                 lrs[f"{mode}-{f['fold']}"] = extra["lr"]
             if "seconds" in extra:
                 timing[f"{mode}-{f['fold']}"] = extra["seconds"]
-        summary[mode] = summarise_mode(folds, args.n_boot, args.seed)
+        only = held_out if mode == "insite" else None
+        summary[mode] = summarise_mode(
+            folds, args.n_boot, args.seed, restrict_sites=only
+        )
         print(mode, "folds", len(folds), "subjects", summary[mode]["n_subjects"])
 
     base = [r for r in rows if r["arm"] in BASELINE_ARMS]
