@@ -7,6 +7,7 @@ from connpre.features import (
     correlation_vectors,
     geometric_mean,
     ledoit_wolf_covs,
+    log_euclidean_mean,
     sym_to_vec,
 )
 
@@ -53,6 +54,23 @@ def test_geometric_mean_of_diagonal_matrices_is_the_log_mean():
     g, _ = geometric_mean(covs)
     assert np.allclose(np.diag(g), np.exp(np.log(d).mean(axis=0)), atol=1e-6)
     assert np.allclose(g - np.diag(np.diag(g)), 0, atol=1e-8)
+
+
+def test_log_euclidean_start_is_exact_for_commuting_matrices():
+    rng = np.random.default_rng(4)
+    d = rng.uniform(0.5, 3.0, size=(9, 5))
+    covs = np.stack([np.diag(v) for v in d])
+    g, n_iter = geometric_mean(covs, tol=1e-9)
+    assert np.allclose(g, log_euclidean_mean(covs), atol=1e-10)
+    assert n_iter == 0
+
+
+def test_a_looser_tolerance_stops_earlier_and_stays_close():
+    covs = random_spd(15, 8, seed=7)
+    tight, n_tight = geometric_mean(covs, tol=1e-9)
+    loose, n_loose = geometric_mean(covs, tol=1e-3)
+    assert n_loose <= n_tight
+    assert np.linalg.norm(tight - loose) < 5e-3
 
 
 def test_tangent_vectors_of_the_fit_set_average_to_zero():

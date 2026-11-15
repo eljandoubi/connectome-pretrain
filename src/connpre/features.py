@@ -39,11 +39,24 @@ def _log_whitened(covs: np.ndarray, w: np.ndarray) -> np.ndarray:
     return _sym_apply(vals, vecs, np.log)
 
 
+def log_euclidean_mean(covs: np.ndarray, chunk: int = 64) -> np.ndarray:
+    """exp of the mean matrix logarithm; a close start for the Karcher mean."""
+    acc = np.zeros(covs.shape[1:])
+    for s in range(0, len(covs), chunk):
+        vals, vecs = np.linalg.eigh(covs[s : s + chunk])
+        acc += _sym_apply(vals, vecs, np.log).sum(axis=0)
+    vals, vecs = np.linalg.eigh(acc / len(covs))
+    return _sym_apply(vals, vecs, np.exp)
+
+
 def geometric_mean(
     covs: np.ndarray, max_iter: int = 50, tol: float = 1e-6, chunk: int = 64
 ) -> tuple[np.ndarray, int]:
-    """Riemannian (Karcher) mean of SPD matrices by fixed-point iteration."""
-    g = covs.mean(axis=0)
+    """Riemannian (Karcher) mean of SPD matrices by fixed-point iteration.
+
+    Stops when the Frobenius norm of the mean tangent vector is below tol.
+    """
+    g = log_euclidean_mean(covs, chunk)
     for it in range(max_iter):
         vals, vecs = np.linalg.eigh(g)
         g_isqrt = _sym_apply(vals, vecs, lambda v: v**-0.5)
