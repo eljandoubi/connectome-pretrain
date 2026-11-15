@@ -20,7 +20,6 @@ class PretrainConfig:
     weight_decay: float = 0.05
     warmup: int = 150
     mask_ratio: float = 0.5
-    clip: float = 1.0
     log_every: int = 100
 
 
@@ -110,8 +109,6 @@ def pretrain(
             loss = masked_loss(model, w, mask)
         opt.zero_grad(set_to_none=True)
         scaler.scale(loss).backward()
-        scaler.unscale_(opt)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.clip)
         scaler.step(opt)
         scaler.update()
         running.append(loss.detach())
