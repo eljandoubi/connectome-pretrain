@@ -83,6 +83,15 @@ def pair_summary(a: dict, b: dict, parts_point: list, parts_boot: list) -> dict:
     return {m: stat(pa[m] - pb[m], ba[m] - bb[m]) for m in METRICS}
 
 
+def complete_folds(folds: list[dict]) -> list[dict]:
+    """Folds that hold every arm found in the richest fold (others are dropped)."""
+    if not folds:
+        return []
+    sets = [{k for k in f["arrays"] if k.startswith("pred|")} for f in folds]
+    best = max(sets, key=len)
+    return [f for f, s in zip(folds, sets, strict=True) if best <= s]
+
+
 def restrict(pool: dict, sites) -> dict:
     """Keep only the subjects whose site is in sites."""
     keep = np.isin(pool["site"], list(sites))
@@ -146,4 +155,31 @@ def fold_means(rows: list[dict]) -> list[dict]:
             vals = [m[f] for m in members if f in m]
             row[f] = float(np.mean(vals)) if vals else None
         out.append(row)
+    return out
+
+
+def site_wins(means: list[dict], pairs=PAIRS, metric: str = "r2") -> dict:
+    """Held-out sites where arm a beats arm b (seed-mean metric): [wins, sites].
+
+    Only leave-one-site-out folds count; for mae the lower value wins.
+    """
+    table: dict = {}
+    for r in means:
+        if r["mode"] != "loso" or r.get(metric) is None:
+            continue
+        key = (r["target"], r["n"], r["fold"])
+        table.setdefault(key, {})[r["arm"]] = r[metric]
+    out: dict = {}
+    sign = -1.0 if metric == "mae" else 1.0
+    for a, b in pairs:
+        counts: dict = {}
+        for (target, n, _), arms in table.items():
+            if a in arms and b in arms:
+                won, total = counts.setdefault((target, n), [0, 0])
+                counts[(target, n)] = [
+                    won + int(sign * (arms[a] - arms[b]) > 0),
+                    total + 1,
+                ]
+        for (target, n), value in counts.items():
+            out.setdefault(target, {}).setdefault(f"{a} - {b}", {})[str(n)] = value
     return out

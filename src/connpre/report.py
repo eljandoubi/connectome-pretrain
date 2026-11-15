@@ -110,6 +110,25 @@ def diff_table(
     return table(header, rows)
 
 
+def wins_table(summary: dict, metric: str = "mae", sizes=("50", "100", "300")) -> str:
+    """Held-out sites won by the first arm of each pair."""
+    wins = summary.get("site_wins", {}).get(metric, {})
+    header = ["pair"]
+    for target in ("age", "fiq"):
+        header += [f"{target} N={SIZE_LABEL[n]}" for n in sizes]
+    pairs = sorted({p for t in wins.values() for p in t})
+    rows = []
+    for pair in pairs:
+        a, b = pair.split(" - ")
+        row = [f"{ARM_LABEL.get(a, a)} beats {ARM_LABEL.get(b, b)}"]
+        for target in ("age", "fiq"):
+            for n in sizes:
+                value = wins.get(target, {}).get(pair, {}).get(n)
+                row.append("-" if value is None else f"{value[0]}/{value[1]}")
+        rows.append(row)
+    return table(header, rows)
+
+
 def coverage_table(
     summary: dict, target: str, level: str = "90", sizes=SIZES, arms=None
 ) -> str:

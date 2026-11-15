@@ -18,6 +18,7 @@ from connpre.report import (
     point_table,
     pretrain_table,
     score_table,
+    wins_table,
 )
 
 
@@ -66,6 +67,7 @@ def main():
         )
     add("Paired differences, pooled R2", diff_table(loso, "pooled_r2"))
     add("Paired differences, macro R2", diff_table(loso, "macro_r2"))
+    add("Sites won on MAE (seed mean per site)", wins_table(loso, "mae"))
     if "insite" in summary:
         add(
             "In-site reference versus leave-one-site-out, N=100, pooled R2",

@@ -9,7 +9,12 @@ import shutil
 from pathlib import Path
 
 from connpre.results import load_merged, write_rows_csv
-from connpre.summary import fold_means, summarise_mode
+from connpre.summary import (
+    complete_folds,
+    fold_means,
+    site_wins,
+    summarise_mode,
+)
 
 BASELINE_ARMS = {
     "corr_ridge",
@@ -37,6 +42,11 @@ def main():
         folds = load_merged(args.runs, mode)
         if not folds:
             continue
+        kept = complete_folds(folds)
+        if len(kept) < len(folds):
+            names = sorted({f["fold"] for f in folds} - {f["fold"] for f in kept})
+            print(mode, "folds without every arm are left out:", names)
+        folds = kept
         if mode == "loso":
             held_out = {f["fold"] for f in folds}
         for f in folds:
@@ -59,7 +69,13 @@ def main():
     write_rows_csv(base, str(out / "runs_baselines.csv"))
     if neural:
         write_rows_csv(neural, str(out / "runs_neural.csv"))
-    write_rows_csv(fold_means(rows), str(out / "per_fold.csv"))
+    means = fold_means(rows)
+    write_rows_csv(means, str(out / "per_fold.csv"))
+    if "loso" in summary:
+        summary["loso"]["site_wins"] = {
+            "r2": site_wins(means, metric="r2"),
+            "mae": site_wins(means, metric="mae"),
+        }
     (out / "summary.json").write_text(json.dumps(summary) + "\n")
     (out / "pretrain_curves.json").write_text(json.dumps(curves) + "\n")
     (out / "learning_rates.json").write_text(json.dumps(lrs, indent=1) + "\n")

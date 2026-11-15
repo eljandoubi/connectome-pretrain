@@ -15,6 +15,7 @@ from connpre.report import (
     pretrain_table,
     score_table,
     table,
+    wins_table,
 )
 from connpre.results import RunStore, load_mode
 from connpre.summary import summarise_mode
@@ -97,6 +98,13 @@ def test_difference_and_coverage_tables(tmp_path):
     )
     cov = coverage_table(summary, "age")
     assert "(" in cov and "site mean (constant)" in cov
+
+
+def test_wins_table_formats_counts():
+    summary = {"site_wins": {"mae": {"age": {"ft_pre - ft_scratch": {"100": [5, 8]}}}}}
+    text = wins_table(summary)
+    assert "fine-tune from pretrained beats fine-tune from scratch" in text
+    assert "5/8" in text and text.count("-") > 3
 
 
 def test_insite_table_pairs_the_two_protocols(tmp_path):

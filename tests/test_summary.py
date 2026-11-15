@@ -3,7 +3,13 @@ import json
 import numpy as np
 
 from connpre.results import RunStore, load_mode
-from connpre.summary import clean, fold_means, summarise_mode
+from connpre.summary import (
+    clean,
+    complete_folds,
+    fold_means,
+    site_wins,
+    summarise_mode,
+)
 
 
 def make_store(fold, n_test, offset):
@@ -74,6 +80,41 @@ def test_restricting_sites_keeps_only_their_subjects(tmp_path):
     summary = summarise_mode(folds, n_boot=50, pairs=(), restrict_sites={"A", "B"})
     assert summary["n_subjects"] == 110
     assert "100" in summary["arms"]["age"]["good"]
+
+
+def test_site_wins_counts_sites_where_the_first_arm_is_better():
+    def row(fold, arm, r2, mae):
+        return {
+            "mode": "loso",
+            "fold": fold,
+            "arm": arm,
+            "target": "age",
+            "n": 100,
+            "r2": r2,
+            "mae": mae,
+        }
+
+    means = [
+        row("A", "x", 0.5, 3.0),
+        row("A", "y", 0.2, 4.0),
+        row("B", "x", 0.1, 5.0),
+        row("B", "y", 0.3, 4.0),
+        row("C", "x", 0.4, 2.0),
+        row("C", "y", 0.1, 3.0),
+        {**row("D", "x", 0.9, 1.0), "mode": "insite"},
+    ]
+    assert site_wins(means, pairs=(("x", "y"),))["age"]["x - y"]["100"] == [2, 3]
+    by_mae = site_wins(means, pairs=(("x", "y"),), metric="mae")
+    assert by_mae["age"]["x - y"]["100"] == [2, 3]
+
+
+def test_complete_folds_drops_folds_missing_an_arm(tmp_path):
+    folds = build(tmp_path)
+    assert [f["fold"] for f in complete_folds(folds)] == ["A", "B", "C"]
+    del folds[2]["arrays"]["pred|good|age|100"]
+    kept = complete_folds(folds)
+    assert [f["fold"] for f in kept] == ["A", "B"]
+    assert complete_folds([]) == []
 
 
 def test_clean_replaces_non_finite_numbers():
