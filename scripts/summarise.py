@@ -29,6 +29,7 @@ BASELINE_ARMS = {
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", nargs="+", required=True)
+    ap.add_argument("--long", default=None, help="run folder of the longer fine-tunes")
     ap.add_argument("--out", required=True)
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--seed", type=int, default=0)
@@ -63,6 +64,21 @@ def main():
             folds, args.n_boot, args.seed, restrict_sites=only
         )
         print(mode, "folds", len(folds), "subjects", summary[mode]["n_subjects"])
+
+    if args.long:
+        folds = complete_folds(load_merged([*args.runs, args.long], "loso"))
+        long_rows = [
+            r for f in folds for r in f["meta"]["rows"] if r["arm"].endswith("_long")
+        ]
+        if long_rows:
+            summary["loso_long"] = summarise_mode(folds, args.n_boot, args.seed)
+            long_means = fold_means([r for f in folds for r in f["meta"]["rows"]])
+            summary["loso_long"]["site_wins"] = {
+                "r2": site_wins(long_means, metric="r2"),
+                "mae": site_wins(long_means, metric="mae"),
+            }
+            rows += long_rows
+            print("loso_long folds", len(folds), "rows", len(long_rows))
 
     base = [r for r in rows if r["arm"] in BASELINE_ARMS]
     neural = [r for r in rows if r["arm"] not in BASELINE_ARMS]

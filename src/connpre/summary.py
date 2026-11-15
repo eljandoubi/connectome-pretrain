@@ -23,6 +23,10 @@ PAIRS = (
     ("probe_flat_trans", "probe_flat"),
     ("tangent_ridge", "corr_ridge"),
     ("tangent_krr", "tangent_ridge"),
+    ("ft_trans_long", "ft_scratch_long"),
+    ("ft_trans_long", "tangent_ridge"),
+    ("ft_scratch_long", "ft_scratch"),
+    ("ft_trans_long", "ft_pre_trans"),
 )
 
 

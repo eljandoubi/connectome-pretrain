@@ -34,7 +34,17 @@ ARM_LABEL = {
     "probe_mean_trans": "probe, mean token, transductive",
     "probe_flat_trans": "probe, all tokens, transductive",
     "ft_pre_trans": "fine-tune, transductive",
+    "ft_scratch_long": "fine-tune from scratch, 1000 steps",
+    "ft_trans_long": "fine-tune from transductive encoder, 1000 steps",
 }
+LONG_ARMS = (
+    "site_const",
+    "tangent_ridge",
+    "ft_scratch",
+    "ft_pre_trans",
+    "ft_scratch_long",
+    "ft_trans_long",
+)
 
 
 def cell(entry: dict | None, digits: int = 2, ci: bool = True) -> str:
@@ -126,6 +136,34 @@ def wins_table(summary: dict, metric: str = "mae", sizes=("50", "100", "300")) -
                 value = wins.get(target, {}).get(pair, {}).get(n)
                 row.append("-" if value is None else f"{value[0]}/{value[1]}")
         rows.append(row)
+    return table(header, rows)
+
+
+def long_diff_table(summary: dict, size: str = "300") -> str:
+    """Paired differences of the longer fine-tunes (age), several metrics."""
+    cols = ("pooled_r2", "macro_r2", "pooled_mae", "macro_spearman")
+    header = [
+        "difference (age)",
+        "pooled R2",
+        "macro R2",
+        "pooled MAE",
+        "macro Spearman",
+    ]
+    pairs = [
+        p
+        for p in summary.get("diffs", {}).get("age", {})
+        if p.split(" - ")[0].endswith("_long")
+    ]
+    rows = []
+    for pair in sorted(pairs):
+        a, b = pair.split(" - ")
+        entry = summary["diffs"]["age"][pair].get(size, {})
+        rows.append(
+            [
+                f"{ARM_LABEL.get(a, a)} minus {ARM_LABEL.get(b, b)}",
+                *[cell(entry.get(c)) for c in cols],
+            ]
+        )
     return table(header, rows)
 
 

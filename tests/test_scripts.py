@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -33,10 +34,30 @@ def load_script(name):
     return module
 
 
+def fold_y(k, n_test):
+    rng = np.random.default_rng(100 + k)
+    return {"age": rng.normal(15, 5, n_test), "fiq": rng.normal(105, 12, n_test)}
+
+
+def write_long(directory, folds=(("A", 40), ("B", 30))):
+    rng = np.random.default_rng(5)
+    for k, (fold, n_test) in enumerate(folds):
+        y = fold_y(k, n_test)
+        ids = np.arange(n_test)
+        store = RunStore("loso", fold, ids + 100 * k, ids, [fold] * n_test, y)
+        for arm, noise in (("ft_scratch_long", 6.0), ("ft_trans_long", 4.0)):
+            for seed in range(2):
+                pred = y["age"] + rng.normal(0, noise, n_test)
+                y_cal = rng.normal(y["age"].mean(), 5.0, 30)
+                cal = (y_cal, y_cal + rng.normal(0, noise, 30))
+                store.add(arm, "age", 300, seed, pred, cal)
+        store.save(str(directory))
+
+
 def write_runs(directory):
     rng = np.random.default_rng(0)
     for k, (fold, n_test) in enumerate((("A", 40), ("B", 30))):
-        y = {"age": rng.normal(15, 5, n_test), "fiq": rng.normal(105, 12, n_test)}
+        y = fold_y(k, n_test)
         ids = np.arange(n_test)
         store = RunStore("loso", fold, ids + 100 * k, ids, [fold] * n_test, y)
         for arm_index, arm in enumerate(ARMS):
@@ -106,3 +127,33 @@ def test_summarise_report_and_figures_scripts_run_end_to_end(tmp_path, monkeypat
     run_main(load_script("figures"), monkeypatch, "--results", str(out))
     for name in ("fig_learning_curves.png", "fig_coverage.png", "fig_pretrain.png"):
         assert 1000 < (out / name).stat().st_size < 300_000
+
+
+def test_long_fine_tunes_get_their_own_summary_and_tables(tmp_path, monkeypatch):
+    runs, long, out = tmp_path / "runs", tmp_path / "long", tmp_path / "results"
+    for folder in (runs, long, out):
+        folder.mkdir()
+    write_runs(runs)
+    write_long(long)
+    (out / "site_table.csv").write_text(SITE_CSV)
+    run_main(
+        load_script("summarise"),
+        monkeypatch,
+        "--runs",
+        str(runs),
+        "--long",
+        str(long),
+        "--out",
+        str(out),
+        "--n-boot",
+        "30",
+    )
+    summary = json.loads((out / "summary.json").read_text())
+    assert "ft_trans_long" in summary["loso_long"]["arms"]["age"]
+    assert "ft_trans_long" not in summary["loso"]["arms"]["age"]
+    pair = summary["loso_long"]["diffs"]["age"]["ft_trans_long - ft_scratch_long"]
+    assert pair["300"]["pooled_r2"]["mean"] > 0
+    assert "ft_trans_long" in (out / "runs_neural.csv").read_text()
+    run_main(load_script("report"), monkeypatch, "--results", str(out))
+    text = (out / "tables.md").read_text()
+    assert "Longer fine-tuning" in text and "1000 steps" in text

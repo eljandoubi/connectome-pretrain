@@ -9,12 +9,14 @@ from pathlib import Path
 
 from connpre.report import (
     BASELINES,
+    LONG_ARMS,
     NEURAL,
     TRANSDUCTIVE,
     cohort_table,
     coverage_table,
     diff_table,
     insite_table,
+    long_diff_table,
     point_table,
     pretrain_table,
     score_table,
@@ -68,6 +70,13 @@ def main():
     add("Paired differences, pooled R2", diff_table(loso, "pooled_r2"))
     add("Paired differences, macro R2", diff_table(loso, "macro_r2"))
     add("Sites won on MAE (seed mean per site)", wins_table(loso, "mae"))
+    if "loso_long" in summary:
+        long = summary["loso_long"]
+        add(
+            "Longer fine-tuning, age, N=300",
+            point_table(long, "age", "300", LONG_ARMS),
+        )
+        add("Longer fine-tuning, paired differences, age, N=300", long_diff_table(long))
     if "insite" in summary:
         add(
             "In-site reference versus leave-one-site-out, N=100, pooled R2",
