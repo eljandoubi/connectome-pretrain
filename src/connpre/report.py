@@ -21,7 +21,7 @@ TRANSDUCTIVE = ("probe_mean_trans", "probe_flat_trans", "ft_pre_trans")
 ARM_LABEL = {
     "site_const": "site mean (constant)",
     "site_oracle": "site mean of the held-out site (oracle)",
-    "site_mean": "site mean of the training subjects of the site",
+    "site_mean": "site mean of the labelled subjects of the site",
     "corr_ridge": "correlation + ridge",
     "tangent_ridge": "tangent + ridge",
     "tangent_krr": "tangent + RBF kernel ridge",
@@ -162,6 +162,33 @@ def long_diff_table(summary: dict, size: str = "300") -> str:
             [
                 f"{ARM_LABEL.get(a, a)} minus {ARM_LABEL.get(b, b)}",
                 *[cell(entry.get(c)) for c in cols],
+            ]
+        )
+    return table(header, rows)
+
+
+def long_check_table(check: dict) -> str:
+    """The one-fold check of fine-tuning length, from long_finetune.json."""
+    header = [
+        "init",
+        "lr",
+        "steps",
+        "train R2",
+        "train Spearman",
+        "held-out R2",
+        "held-out Spearman",
+    ]
+    rows = []
+    for r in check["runs"]:
+        rows.append(
+            [
+                r["arm"].replace("_", " "),
+                f"{r['lr']:g}",
+                str(r["steps"]),
+                f"{r['train']['r2']:.3f}",
+                f"{r['train']['spearman']:.2f}",
+                f"{r['held_out']['r2']:.3f}",
+                f"{r['held_out']['spearman']:.2f}",
             ]
         )
     return table(header, rows)

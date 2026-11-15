@@ -149,6 +149,7 @@ def test_long_fine_tunes_get_their_own_summary_and_tables(tmp_path, monkeypatch)
         "30",
     )
     summary = json.loads((out / "summary.json").read_text())
+    assert summary["loso_long"]["folds"] == ["A", "B"]
     assert "ft_trans_long" in summary["loso_long"]["arms"]["age"]
     assert "ft_trans_long" not in summary["loso"]["arms"]["age"]
     pair = summary["loso_long"]["diffs"]["age"]["ft_trans_long - ft_scratch_long"]

@@ -64,6 +64,7 @@ def main():
             folds, args.n_boot, args.seed, restrict_sites=only
         )
         print(mode, "folds", len(folds), "subjects", summary[mode]["n_subjects"])
+        summary[mode]["folds"] = sorted(f["fold"] for f in folds)
 
     if args.long:
         folds = complete_folds(load_merged([*args.runs, args.long], "loso"))
@@ -72,6 +73,7 @@ def main():
         ]
         if long_rows:
             summary["loso_long"] = summarise_mode(folds, args.n_boot, args.seed)
+            summary["loso_long"]["folds"] = sorted(f["fold"] for f in folds)
             long_means = fold_means([r for f in folds for r in f["meta"]["rows"]])
             summary["loso_long"]["site_wins"] = {
                 "r2": site_wins(long_means, metric="r2"),

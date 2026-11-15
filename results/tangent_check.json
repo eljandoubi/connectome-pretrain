@@ -1,0 +1,14 @@
+{
+ "n_subjects": 60,
+ "n_roi": 200,
+ "tol_0.001": {
+  "iterations": 15,
+  "max_abs_diff": 6.443324709481946e-05,
+  "relative_frobenius_diff": 5.4599043324481315e-05
+ },
+ "tol_1e-08": {
+  "iterations": 39,
+  "max_abs_diff": 0.0001230086955964771,
+  "relative_frobenius_diff": 0.00010849526911807994
+ }
+}

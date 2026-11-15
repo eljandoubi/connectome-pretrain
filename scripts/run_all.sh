@@ -20,12 +20,11 @@ for shard in 0 1; do
     --mode loso --shard "$shard/2" > "$WORK/loso_$shard.log" 2>&1 &
 done
 wait
-for shard in 0 1; do
-  python scripts/run_neural.py --data "$DATA" --out "$WORK/runs_nn" --ckpt "$WORK/ckpt" \
-    --mode insite --shard "$shard/2" > "$WORK/insite_$shard.log" 2>&1 &
-done
-wait
 
-python scripts/summarise.py --runs "$WORK/runs_bl" "$WORK/runs_nn" --out results
+python scripts/site_decoding.py --data "$DATA" --out results/site_decoding.json
+python scripts/long_finetune_check.py --data "$DATA" --ckpt "$WORK/ckpt" --out results/long_finetune.json
+python scripts/run_long.py --data "$DATA" --ckpt "$WORK/ckpt" --out "$WORK/runs_long"
+
+python scripts/summarise.py --runs "$WORK/runs_bl" "$WORK/runs_nn" --long "$WORK/runs_long" --out results
 python scripts/figures.py
 python scripts/report.py > /dev/null

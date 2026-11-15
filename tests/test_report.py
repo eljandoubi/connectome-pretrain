@@ -11,6 +11,7 @@ from connpre.report import (
     coverage_table,
     diff_table,
     insite_table,
+    long_check_table,
     point_table,
     pretrain_table,
     score_table,
@@ -154,3 +155,32 @@ def test_summary_json_round_trips(tmp_path):
     path = tmp_path / "summary.json"
     path.write_text(json.dumps({"loso": summary}))
     assert json.loads(path.read_text())["loso"]["n_subjects"] == 120
+
+
+def test_long_check_table_lists_every_run():
+    scores = {"r2": 0.0123, "mae": 4.0, "spearman": 0.456}
+    check = {
+        "site": "NYU",
+        "n": 300,
+        "target": "age",
+        "runs": [
+            {
+                "arm": "scratch",
+                "lr": 3e-4,
+                "steps": 300,
+                "train": scores,
+                "held_out": scores,
+            },
+            {
+                "arm": "transductive_pretrained",
+                "lr": 1e-4,
+                "steps": 1500,
+                "train": scores,
+                "held_out": scores,
+            },
+        ],
+    }
+    lines = long_check_table(check).split("\n")
+    assert len(lines) == 4
+    assert lines[2].startswith("| scratch | 0.0003 | 300 | 0.012 | 0.46 | 0.012 | 0.46")
+    assert "transductive pretrained | 0.0001 | 1500" in lines[3]

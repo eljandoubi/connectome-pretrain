@@ -16,6 +16,7 @@ from connpre.report import (
     coverage_table,
     diff_table,
     insite_table,
+    long_check_table,
     long_diff_table,
     point_table,
     pretrain_table,
@@ -83,6 +84,13 @@ def main():
             insite_table(loso, summary["insite"]),
         )
     curves = res / "pretrain_curves.json"
+    check = res / "long_finetune.json"
+    if check.exists():
+        data = json.loads(check.read_text())
+        add(
+            f"Fine-tuning length on {data['site']}, N={data['n']}, age",
+            long_check_table(data),
+        )
     if curves.exists():
         data = {
             k: v

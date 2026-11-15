@@ -1,0 +1,11 @@
+{
+  "n_downloaded": 871,
+  "n_no_fiq": 60,
+  "n_no_age_after": 0,
+  "n_short_after": 24,
+  "n_kept": 787,
+  "t0": 116,
+  "n_with_flat_roi": 13,
+  "n_roi": 200,
+  "n_sites": 18
+}

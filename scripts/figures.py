@@ -5,6 +5,7 @@ usage: python scripts/figures.py [--results results]
 
 import argparse
 import json
+import textwrap
 from pathlib import Path
 
 import matplotlib
@@ -34,7 +35,7 @@ COLORS = {
 
 
 def learning_curves(summary: dict, path: Path) -> None:
-    fig, axes = plt.subplots(1, 2, figsize=(10, 3.8), sharey=False)
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4.4), sharey=False)
     x = np.arange(len(SIZES))
     for ax, target in zip(axes, ("age", "fiq"), strict=True):
         for k, arm in enumerate(CURVE_ARMS):
@@ -63,8 +64,9 @@ def learning_curves(summary: dict, path: Path) -> None:
         ax.set_xlabel("labelled subjects")
         ax.set_ylabel("pooled R2, held-out site")
         ax.set_title(f"{target} (leave-one-site-out)")
-    axes[0].legend(fontsize=7, loc="lower right")
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=7, loc="lower center", ncol=3, frameon=False)
+    fig.tight_layout(rect=(0, 0.16, 1, 1))
     fig.savefig(path, dpi=110)
     plt.close(fig)
 
@@ -78,7 +80,7 @@ def coverage_figure(summary: dict, path: Path, size: str = "100") -> None:
         "ft_scratch",
         "ft_pre",
     ]
-    fig, axes = plt.subplots(1, 2, figsize=(10, 3.6), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4.2), sharey=True)
     for ax, target in zip(axes, ("age", "fiq"), strict=True):
         shown = [
             a
@@ -111,19 +113,13 @@ def coverage_figure(summary: dict, path: Path, size: str = "100") -> None:
                 capsize=2,
             )
             ax.axhline(int(level) / 100, color=shade, ls="--", lw=1)
-        ax.set_xticks(
-            x,
-            [
-                ARM_LABEL[a].replace(" + ", "+\n").replace("fine-tune ", "fine-tune\n")
-                for a in shown
-            ],
-            fontsize=7,
-        )
+        ax.set_xticks(x, [textwrap.fill(ARM_LABEL[a], 11) for a in shown], fontsize=7)
         ax.set_title(f"{target}, N={SIZE_LABEL[size]}: coverage on the held-out site")
         ax.set_ylim(0.4, 1.02)
     axes[0].set_ylabel("empirical coverage")
-    axes[0].legend(fontsize=8, loc="lower left")
-    fig.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=8, loc="upper center", ncol=2, frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(path, dpi=110)
     plt.close(fig)
 

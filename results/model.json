@@ -1,0 +1,22 @@
+{
+ "parameters": 1033920,
+ "model": {
+  "n_roi": 200,
+  "window": 64,
+  "dim": 128,
+  "depth": 5,
+  "heads": 4,
+  "mlp": 512
+ },
+ "pretrain": {
+  "steps": 3000,
+  "batch": 64,
+  "lr": 0.0005,
+  "weight_decay": 0.05,
+  "warmup": 150,
+  "mask_ratio": 0.5,
+  "log_every": 100
+ },
+ "device": "Tesla T4",
+ "torch": "2.14.1+cu130"
+}

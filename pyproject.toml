@@ -7,7 +7,7 @@ name = "connpre"
 version = "0.1.0"
 description = "Masked pretraining on resting-state ROI series versus tangent-space ridge under a site shift"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 dependencies = ["numpy", "scipy", "scikit-learn", "torch", "matplotlib"]
 

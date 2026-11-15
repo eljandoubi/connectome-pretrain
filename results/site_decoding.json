@@ -1,0 +1,20 @@
+{
+ "correlation": {
+  "accuracy": 0.6925031766200762,
+  "majority_share": 0.21855146124523506,
+  "n_sites": 18,
+  "n_subjects": 787
+ },
+ "tangent": {
+  "accuracy": 0.7636594663278272,
+  "majority_share": 0.21855146124523506,
+  "n_sites": 18,
+  "n_subjects": 787
+ },
+ "lag1_autocorrelation_only": {
+  "accuracy": 0.29987293519695046,
+  "majority_share": 0.21855146124523506,
+  "n_sites": 18,
+  "n_subjects": 787
+ }
+}

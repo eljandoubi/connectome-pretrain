@@ -1,0 +1,50 @@
+{
+ "loso-MAX_MUN": {
+  "ft_pre|age": 0.0001,
+  "ft_pre|fiq": 3e-05,
+  "ft_scratch|age": 0.0003,
+  "ft_scratch|fiq": 0.0001
+ },
+ "loso-NYU": {
+  "ft_pre|age": 0.0003,
+  "ft_pre|fiq": 0.0003,
+  "ft_scratch|age": 0.0003,
+  "ft_scratch|fiq": 0.0001
+ },
+ "loso-PITT": {
+  "ft_pre|age": 0.0001,
+  "ft_pre|fiq": 0.0001,
+  "ft_scratch|age": 0.0003,
+  "ft_scratch|fiq": 0.0001
+ },
+ "loso-TRINITY": {
+  "ft_pre|age": 0.0003,
+  "ft_pre|fiq": 3e-05,
+  "ft_scratch|age": 0.001,
+  "ft_scratch|fiq": 0.001
+ },
+ "loso-UCLA_1": {
+  "ft_pre|age": 3e-05,
+  "ft_pre|fiq": 0.0003,
+  "ft_scratch|age": 0.0001,
+  "ft_scratch|fiq": 0.001
+ },
+ "loso-UM_1": {
+  "ft_pre|age": 0.0001,
+  "ft_pre|fiq": 0.0001,
+  "ft_scratch|age": 0.001,
+  "ft_scratch|fiq": 0.0003
+ },
+ "loso-USM": {
+  "ft_pre|age": 0.0001,
+  "ft_pre|fiq": 3e-05,
+  "ft_scratch|age": 0.0001,
+  "ft_scratch|fiq": 0.001
+ },
+ "loso-YALE": {
+  "ft_pre|age": 0.0003,
+  "ft_pre|fiq": 0.0001,
+  "ft_scratch|age": 0.001,
+  "ft_scratch|fiq": 0.0001
+ }
+}
