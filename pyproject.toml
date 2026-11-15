@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "connpre"
+version = "0.1.0"
+description = "Masked pretraining on resting-state ROI series versus tangent-space ridge under a site shift"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = ["numpy", "scipy", "scikit-learn", "torch", "matplotlib"]
+
+[project.optional-dependencies]
+data = ["nilearn", "pandas"]
+dev = ["pytest", "ruff>=0.17.5,<0.18"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 88
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
