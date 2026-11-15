@@ -295,6 +295,8 @@ pip install -e ".[dev]"
 ruff check . && ruff format --check . && pytest -q
 ```
 
+`tests/conftest.py` puts `src/` of the checkout first on the import path and stops the run when `connpre` is imported from anywhere else, so the tests exercise this checkout even when another copy is installed in the environment. `PYTHONPATH=src pytest -q` works without the editable install.
+
 The study (Colab with a T4; the download happens inside the runtime):
 
 ```
