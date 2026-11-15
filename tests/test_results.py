@@ -1,6 +1,13 @@
 import numpy as np
 
-from connpre.results import RunStore, keys_of, load_mode, pooled, write_rows_csv
+from connpre.results import (
+    RunStore,
+    keys_of,
+    load_merged,
+    load_mode,
+    pooled,
+    write_rows_csv,
+)
 
 
 def make_store(fold, n_test, offset):
@@ -57,3 +64,19 @@ def test_rows_carry_scores_and_extra_fields(tmp_path):
     header = path.read_text().splitlines()[0].split(",")
     assert "cover90" in header and "alpha" in header
     assert len(path.read_text().splitlines()) == 1 + len(store.rows)
+
+
+def test_merged_folds_combine_arms_from_two_run_folders(tmp_path):
+    one, two = tmp_path / "one", tmp_path / "two"
+    make_store("A", 12, 1).save(str(one))
+    other = make_store("A", 12, 1)
+    other.rows, other._pred, other._q = [], {}, {}
+    other.add("probe", "age", 100, 0, other.y["age"] + 1.0)
+    other.extra = {"lr": {"x": 1}}
+    other.save(str(two))
+    merged = load_merged([str(one), str(two)], "loso")
+    assert len(merged) == 1
+    assert ("probe", "age", 100) in keys_of(merged)
+    assert ("ridge", "age", 100) in keys_of(merged)
+    assert merged[0]["meta"]["extra"] == {"lr": {"x": 1}}
+    assert len(merged[0]["meta"]["rows"]) == len(make_store("A", 12, 1).rows) + 1

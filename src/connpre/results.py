@@ -86,6 +86,23 @@ def load_mode(directory: str, mode: str) -> list[dict]:
     return [load_fold(directory, mode, n) for n in names]
 
 
+def load_merged(directories: list[str], mode: str) -> list[dict]:
+    """Folds of several run folders, merged by fold name (arms must not overlap)."""
+    by_fold: dict = {}
+    for directory in directories:
+        for f in load_mode(directory, mode):
+            have = by_fold.get(f["fold"])
+            if have is None:
+                by_fold[f["fold"]] = f
+                continue
+            for key in ("test_idx", "sub_id", "site"):
+                assert np.array_equal(have["arrays"][key], f["arrays"][key])
+            have["arrays"].update(f["arrays"])
+            have["meta"]["rows"] += f["meta"]["rows"]
+            have["meta"]["extra"].update(f["meta"]["extra"])
+    return [by_fold[k] for k in sorted(by_fold)]
+
+
 def keys_of(folds: list[dict]) -> list[tuple]:
     """All (arm, target, n) present in every fold."""
     sets = []
