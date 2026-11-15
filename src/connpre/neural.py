@@ -30,6 +30,7 @@ from connpre.settings import TARGETS
 LR_GRIDS = {
     "ft_pre": (3e-5, 1e-4, 3e-4),
     "ft_scratch": (1e-4, 3e-4, 1e-3),
+    "ft_trans": (3e-5, 1e-4, 3e-4),
 }
 N_MONITOR = 48
 RANDOM_SEED = 12345
@@ -39,14 +40,43 @@ def probe_arm(kind: str, name: str) -> str:
     return f"probe_{kind}" if name == "pre" else f"probe_{kind}_{name}"
 
 
-def select_lrs(
-    x, y_all, site, pool, val, state_pre, model_cfg, starts, seed, n_lab=100, steps=200
-) -> dict:
-    """Fine-tune learning rate per arm and target on an inner validation set."""
+def fold_seed(fold_name: str) -> int:
+    return zlib.crc32(fold_name.encode()) % 10_000
+
+
+def lr_selection_sets(
+    train: np.ndarray,
+    site: np.ndarray,
+    fold_name: str,
+    loso: bool,
+    seed: int,
+    n_lab: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Subjects that choose the rates: n_lab labelled ones and the validation set.
+
+    The labelled ones come from the training subjects outside the validation set.
+    """
+    pool, val = inner_split(train, site, 0, fold_name, loso=loso)
     rng = np.random.default_rng([seed, 99])
-    lab = pool[stratified_order(site[pool], rng)][:n_lab]
+    return pool[stratified_order(site[pool], rng)][:n_lab], val
+
+
+def calibration_without_tuning(
+    cal: np.ndarray, lr_lab: np.ndarray, lr_val: np.ndarray
+) -> np.ndarray:
+    """Calibration subjects that took no part in choosing the learning rates."""
+    return cal[~np.isin(cal, np.concatenate([lr_lab, lr_val]))]
+
+
+def select_lrs(x, y_all, lab, val, states, model_cfg, starts, seed, steps=200) -> dict:
+    """Fine-tune learning rate per arm and target, chosen on the validation subjects.
+
+    states maps an arm of LR_GRIDS to its initial weights (None: random weights).
+    Every arm trains on the same labelled subjects for the same number of steps and
+    searches its own grid.
+    """
     chosen = {}
-    for arm, state in (("ft_pre", state_pre), ("ft_scratch", None)):
+    for arm, state in states.items():
         for t in range(y_all.shape[1]):
             mu, sd = y_all[lab, t].mean(), y_all[lab, t].std()
             y_val = (y_all[val, t] - mu) / sd
@@ -84,12 +114,18 @@ def fold_neural(
     lr_n_lab: int = 100,
     log=print,
 ):
-    """Pretrain on the training subjects of the fold, then run probes and fine-tunes."""
+    """Pretrain on the training subjects of the fold, then run probes and fine-tunes.
+
+    The fine-tune intervals calibrate on the calibration subjects that took no part in
+    choosing the learning rates; the probes choose nothing on them and use all of them.
+    The transductive encoder is fine-tuned with its own rate (ft_trans) and, as an
+    ablation, with the rate of the pretrained start (ft_pre_trans).
+    """
     ft_steps = ft_steps or STEPS
     started = time.time()
     site = cohort.site
     y_all = np.stack([cohort.target(t) for t in TARGETS], axis=1)
-    fseed = zlib.crc32(fold.name.encode()) % 10_000
+    fseed = fold_seed(fold.name)
     monitor_idx = np.random.default_rng(fseed).choice(
         fold.train, min(N_MONITOR, len(fold.train) // 5), replace=False
     )
@@ -112,30 +148,31 @@ def fold_neural(
         grams[("flat", name)] = standardised_gram(flat_feat, fold.train)
         del mean_feat, flat_feat
 
-    pool, val = inner_split(fold.train, site, 0, fold.name, loso=mode == "loso")
+    lr_lab, lr_val = lr_selection_sets(
+        fold.train, site, fold.name, mode == "loso", fseed, lr_n_lab
+    )
+    lr_states = {"ft_pre": state_pre, "ft_scratch": None}
+    if trans_state is not None:
+        lr_states["ft_trans"] = trans_state
     lrs = select_lrs(
-        x,
-        y_all,
-        site,
-        pool,
-        val,
-        state_pre,
-        model_cfg,
-        starts,
-        fseed,
-        lr_n_lab,
-        lr_steps,
+        x, y_all, lr_lab, lr_val, lr_states, model_cfg, starts, fseed, lr_steps
     )
     store.extra["lr"] = {f"{arm}|{TARGETS[t]}": lr for (arm, t), lr in lrs.items()}
+    store.extra["lr_subjects"] = {"labelled": len(lr_lab), "validation": len(lr_val)}
     log(f"{fold.name} lr chosen {round(time.time() - started)}s {store.extra['lr']}")
 
-    ft_arms = [("ft_pre", state_pre, "ft_pre"), ("ft_scratch", None, "ft_scratch")]
+    start_state = {"pre": state_pre, "scratch": None, "trans": trans_state}
+    ft_arms = [("ft_pre", "pre", "ft_pre"), ("ft_scratch", "scratch", "ft_scratch")]
     if trans_state is not None:
-        ft_arms.append(("ft_pre_trans", trans_state, "ft_pre"))
+        ft_arms += [
+            ("ft_trans", "trans", "ft_trans"),
+            ("ft_pre_trans", "trans", "ft_pre"),
+        ]
     for seed in seeds:
         draw = draw_sets(fold.train, site, n_cal, seed, fold.name)
         cal = draw.cal
-        both = np.concatenate([cal, fold.test])
+        cal_ft = calibration_without_tuning(cal, lr_lab, lr_val)
+        both, both_ft = (np.concatenate([c, fold.test]) for c in (cal, cal_ft))
         for n in sizes:
             lab = draw.labelled(n)
             for (kind, name), gram in grams.items():
@@ -150,27 +187,38 @@ def fold_neural(
                         pred[len(cal) :, t],
                         cal_pair,
                         rel_alpha=float(REL_ALPHAS[chosen[t]]),
+                        n_cal=len(cal),
                     )
-            for arm, state, lr_arm in ft_arms:
+            fits = {}
+            for arm, start, lr_arm in ft_arms:
                 for t, target in enumerate(TARGETS):
-                    mu, sd = y_all[lab, t].mean(), y_all[lab, t].std()
-                    cfg = FinetuneConfig(
-                        lr=lrs[(lr_arm, t)], steps=ft_steps.get(n, 300)
-                    )
-                    ft_seed = 1000 * seed + n % 997 + 17 * t
-                    model = finetune(
-                        state,
-                        model_cfg,
-                        x,
-                        lab,
-                        (y_all[lab, t] - mu) / sd,
-                        cfg,
-                        ft_seed,
-                    )
-                    pred = predict(model, x, both, starts) * sd + mu
-                    cal_pair = (y_all[cal, t], pred[: len(cal)])
+                    lr = lrs[(lr_arm, t)]
+                    if (start, t, lr) not in fits:
+                        mu, sd = y_all[lab, t].mean(), y_all[lab, t].std()
+                        cfg = FinetuneConfig(lr=lr, steps=ft_steps.get(n, 300))
+                        ft_seed = 1000 * seed + n % 997 + 17 * t
+                        model = finetune(
+                            start_state[start],
+                            model_cfg,
+                            x,
+                            lab,
+                            (y_all[lab, t] - mu) / sd,
+                            cfg,
+                            ft_seed,
+                        )
+                        pred = predict(model, x, both_ft, starts) * sd + mu
+                        fits[(start, t, lr)] = pred
+                    pred = fits[(start, t, lr)]
+                    cal_pair = (y_all[cal_ft, t], pred[: len(cal_ft)])
                     store.add(
-                        arm, target, n, seed, pred[len(cal) :], cal_pair, lr=cfg.lr
+                        arm,
+                        target,
+                        n,
+                        seed,
+                        pred[len(cal_ft) :],
+                        cal_pair,
+                        lr=lr,
+                        n_cal=len(cal_ft),
                     )
         log(f"{fold.name} seed {seed} done {round(time.time() - started)}s")
     store.extra["seconds"] = round(time.time() - started, 1)
