@@ -27,7 +27,10 @@ from connpre.protocol import Fold, draw_sets, inner_split, stratified_order
 from connpre.ridge import REL_ALPHAS, ridge_cv_predict
 from connpre.settings import TARGETS
 
-LR_GRID = (1e-4, 3e-4, 1e-3)
+LR_GRIDS = {
+    "ft_pre": (3e-5, 1e-4, 3e-4),
+    "ft_scratch": (1e-4, 3e-4, 1e-3),
+}
 N_MONITOR = 48
 RANDOM_SEED = 12345
 
@@ -48,7 +51,7 @@ def select_lrs(
             mu, sd = y_all[lab, t].mean(), y_all[lab, t].std()
             y_val = (y_all[val, t] - mu) / sd
             best = None
-            for lr in LR_GRID:
+            for lr in LR_GRIDS[arm]:
                 cfg = FinetuneConfig(lr=lr, steps=steps)
                 model = finetune(
                     state, model_cfg, x, lab, (y_all[lab, t] - mu) / sd, cfg, seed

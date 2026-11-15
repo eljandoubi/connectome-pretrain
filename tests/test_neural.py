@@ -4,7 +4,7 @@ import torch
 from connpre.data import synthetic_cohort
 from connpre.finetune import random_state
 from connpre.model import ModelConfig
-from connpre.neural import LR_GRID, fold_neural, probe_arm
+from connpre.neural import LR_GRIDS, fold_neural, probe_arm
 from connpre.pretrain import PretrainConfig
 from connpre.protocol import loso_folds
 
@@ -55,7 +55,12 @@ def test_fold_runs_every_arm_for_both_targets_and_sizes():
         "ft_pre_trans",
     }
     assert len(store.rows) == 9 * 2 * 2
-    assert all(r["lr"] in LR_GRID for r in store.rows if r["arm"].startswith("ft"))
+    allowed = {
+        "ft_pre": LR_GRIDS["ft_pre"],
+        "ft_scratch": LR_GRIDS["ft_scratch"],
+        "ft_pre_trans": LR_GRIDS["ft_pre"],
+    }
+    assert all(r["lr"] in allowed[r["arm"]] for r in store.rows if r["arm"] in allowed)
     assert store.extra["pretrain"]["history"][-1]["step"] == 20
     assert set(store.extra["lr"]) == {
         f"{a}|{t}" for a in ("ft_pre", "ft_scratch") for t in ("age", "fiq")
