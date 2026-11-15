@@ -76,9 +76,9 @@ def coverage_figure(summary: dict, path: Path, size: str = "100") -> None:
         "site_const",
         "corr_ridge",
         "tangent_ridge",
+        "tangent_krr",
+        "probe_mean",
         "probe_flat",
-        "ft_scratch",
-        "ft_pre",
     ]
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.2), sharey=True)
     for ax, target in zip(axes, ("age", "fiq"), strict=True):

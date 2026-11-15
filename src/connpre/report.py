@@ -17,7 +17,8 @@ NEURAL = (
     "ft_scratch",
     "ft_pre",
 )
-TRANSDUCTIVE = ("probe_mean_trans", "probe_flat_trans", "ft_pre_trans")
+TRANSDUCTIVE = ("probe_mean_trans", "probe_flat_trans", "ft_pre_trans", "ft_trans")
+FINETUNES = ("ft_scratch", "ft_pre", "ft_pre_trans", "ft_trans")
 ARM_LABEL = {
     "site_const": "site mean (constant)",
     "site_oracle": "site mean of the held-out site (oracle)",
@@ -33,7 +34,8 @@ ARM_LABEL = {
     "ft_pre": "fine-tune from pretrained",
     "probe_mean_trans": "probe, mean token, transductive",
     "probe_flat_trans": "probe, all tokens, transductive",
-    "ft_pre_trans": "fine-tune, transductive",
+    "ft_pre_trans": "fine-tune, transductive (pretrained rate)",
+    "ft_trans": "fine-tune, transductive (own rate)",
     "ft_scratch_long": "fine-tune from scratch, 1000 steps",
     "ft_trans_long": "fine-tune from transductive encoder, 1000 steps",
 }

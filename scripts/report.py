@@ -9,6 +9,7 @@ from pathlib import Path
 
 from connpre.report import (
     BASELINES,
+    FINETUNES,
     LONG_ARMS,
     NEURAL,
     TRANSDUCTIVE,
@@ -41,6 +42,9 @@ def main():
 
     add("Cohort by site", cohort_table(res / "site_table.csv"))
     arms = [*BASELINES, *NEURAL]
+    no_finetune = [
+        a for a in (*BASELINES, *NEURAL, *TRANSDUCTIVE) if a not in FINETUNES
+    ]
     for target in ("age", "fiq"):
         add(
             f"{target}: pooled R2 by label count (leave-one-site-out)",
@@ -66,7 +70,12 @@ def main():
         )
         add(
             f"{target}: 90 percent conformal intervals, pooled coverage (width)",
-            coverage_table(loso, target),
+            coverage_table(loso, target, arms=no_finetune),
+        )
+        add(
+            f"{target}: 90 percent conformal intervals of the fine-tunes, "
+            "pooled coverage (width)",
+            coverage_table(loso, target, arms=FINETUNES),
         )
     add("Paired differences, pooled R2", diff_table(loso, "pooled_r2"))
     add("Paired differences, macro R2", diff_table(loso, "macro_r2"))

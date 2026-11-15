@@ -73,7 +73,7 @@
 |---|---|---|---|
 | probe, mean token, transductive | -0.11 [-0.14, -0.10] | -0.10 [-0.11, -0.09] | -0.09 [-0.10, -0.07] |
 | probe, all tokens, transductive | -0.11 [-0.13, -0.09] | -0.09 [-0.11, -0.08] | -0.08 [-0.10, -0.07] |
-| fine-tune, transductive | -0.19 [-0.22, -0.17] | -0.15 [-0.18, -0.14] | -0.14 [-0.16, -0.12] |
+| fine-tune, transductive (pretrained rate) | -0.19 [-0.22, -0.17] | -0.15 [-0.18, -0.14] | -0.14 [-0.16, -0.12] |
 | fine-tune from pretrained | -0.09 [-0.11, -0.08] | -0.09 [-0.11, -0.08] | -0.10 [-0.12, -0.09] |
 
 ### age: 90 percent conformal intervals, pooled coverage (width)
@@ -88,11 +88,16 @@
 | probe, all tokens, random encoder | 0.89 (22.9) | 0.89 (22.5) | 0.89 (22.3) | - |
 | probe, mean token, pretrained | 0.89 (22.6) | 0.90 (22.7) | 0.89 (22.3) | - |
 | probe, all tokens, pretrained | 0.89 (22.6) | 0.90 (22.6) | 0.89 (22.3) | - |
-| fine-tune from scratch | 0.89 (22.5) | 0.89 (22.4) | 0.89 (22.4) | - |
-| fine-tune from pretrained | 0.89 (22.7) | 0.89 (22.4) | 0.89 (22.3) | - |
 | probe, mean token, transductive | 0.89 (23.0) | 0.89 (22.4) | 0.89 (22.3) | - |
 | probe, all tokens, transductive | 0.89 (22.8) | 0.89 (22.4) | 0.89 (22.3) | - |
-| fine-tune, transductive | 0.89 (22.8) | 0.89 (22.5) | 0.89 (22.3) | - |
+
+### age: 90 percent conformal intervals of the fine-tunes, pooled coverage (width)
+
+| arm | N=50 | N=100 | N=300 | N=all |
+|---|---|---|---|---|
+| fine-tune from scratch | 0.89 (22.5) | 0.89 (22.4) | 0.89 (22.4) | - |
+| fine-tune from pretrained | 0.89 (22.7) | 0.89 (22.4) | 0.89 (22.3) | - |
+| fine-tune, transductive (pretrained rate) | 0.89 (22.8) | 0.89 (22.5) | 0.89 (22.3) | - |
 
 ### fiq: pooled R2 by label count (leave-one-site-out)
 
@@ -146,7 +151,7 @@
 |---|---|---|---|
 | probe, mean token, transductive | -0.07 [-0.10, -0.05] | -0.05 [-0.07, -0.04] | -0.03 [-0.04, -0.02] |
 | probe, all tokens, transductive | -0.08 [-0.11, -0.06] | -0.06 [-0.08, -0.04] | -0.02 [-0.04, -0.02] |
-| fine-tune, transductive | -0.08 [-0.11, -0.06] | -0.05 [-0.08, -0.04] | -0.03 [-0.05, -0.02] |
+| fine-tune, transductive (pretrained rate) | -0.08 [-0.11, -0.06] | -0.05 [-0.08, -0.04] | -0.03 [-0.05, -0.02] |
 | fine-tune from pretrained | -0.05 [-0.08, -0.04] | -0.04 [-0.06, -0.03] | -0.03 [-0.04, -0.02] |
 
 ### fiq: 90 percent conformal intervals, pooled coverage (width)
@@ -161,11 +166,16 @@
 | probe, all tokens, random encoder | 0.89 (48.6) | 0.89 (47.9) | 0.89 (48.1) | - |
 | probe, mean token, pretrained | 0.89 (48.8) | 0.89 (47.9) | 0.89 (48.0) | - |
 | probe, all tokens, pretrained | 0.88 (49.0) | 0.88 (47.7) | 0.88 (47.8) | - |
-| fine-tune from scratch | 0.89 (48.2) | 0.89 (48.4) | 0.89 (47.9) | - |
-| fine-tune from pretrained | 0.88 (48.1) | 0.89 (48.4) | 0.89 (47.9) | - |
 | probe, mean token, transductive | 0.88 (48.7) | 0.88 (47.8) | 0.89 (48.1) | - |
 | probe, all tokens, transductive | 0.88 (49.0) | 0.88 (47.9) | 0.89 (47.9) | - |
-| fine-tune, transductive | 0.88 (48.5) | 0.89 (48.6) | 0.89 (47.9) | - |
+
+### fiq: 90 percent conformal intervals of the fine-tunes, pooled coverage (width)
+
+| arm | N=50 | N=100 | N=300 | N=all |
+|---|---|---|---|---|
+| fine-tune from scratch | 0.89 (48.2) | 0.89 (48.4) | 0.89 (47.9) | - |
+| fine-tune from pretrained | 0.88 (48.1) | 0.89 (48.4) | 0.89 (47.9) | - |
+| fine-tune, transductive (pretrained rate) | 0.88 (48.5) | 0.89 (48.6) | 0.89 (47.9) | - |
 
 ### Paired differences, pooled R2
 
@@ -173,7 +183,7 @@
 |---|---|---|---|---|---|---|
 | fine-tune from pretrained minus fine-tune from scratch | 0.02 [0.01, 0.03] | 0.01 [-0.00, 0.02] | -0.02 [-0.02, -0.01] | -0.01 [-0.02, -0.00] | -0.00 [-0.01, 0.00] | -0.00 [-0.01, 0.00] |
 | fine-tune from pretrained minus tangent + ridge | -0.10 [-0.13, -0.09] | -0.19 [-0.22, -0.16] | -0.38 [-0.41, -0.35] | -0.03 [-0.04, -0.01] | -0.02 [-0.03, -0.01] | -0.05 [-0.07, -0.03] |
-| fine-tune, transductive minus fine-tune from pretrained | -0.10 [-0.11, -0.08] | -0.06 [-0.07, -0.05] | -0.04 [-0.04, -0.03] | -0.02 [-0.03, -0.01] | -0.01 [-0.02, -0.01] | -0.00 [-0.01, 0.00] |
+| fine-tune, transductive (pretrained rate) minus fine-tune from pretrained | -0.10 [-0.11, -0.08] | -0.06 [-0.07, -0.05] | -0.04 [-0.04, -0.03] | -0.02 [-0.03, -0.01] | -0.01 [-0.02, -0.01] | -0.00 [-0.01, 0.00] |
 | fine-tune from scratch minus tangent + ridge | -0.12 [-0.14, -0.11] | -0.20 [-0.22, -0.18] | -0.36 [-0.40, -0.33] | -0.02 [-0.03, -0.01] | -0.02 [-0.03, -0.01] | -0.04 [-0.06, -0.02] |
 | probe, all tokens, pretrained minus probe, all tokens, random encoder | -0.01 [-0.02, 0.00] | -0.02 [-0.03, -0.01] | -0.00 [-0.01, 0.00] | -0.01 [-0.03, -0.00] | -0.02 [-0.03, -0.01] | -0.01 [-0.01, -0.00] |
 | probe, all tokens, pretrained minus tangent + ridge | -0.09 [-0.12, -0.07] | -0.18 [-0.22, -0.15] | -0.34 [-0.37, -0.31] | -0.03 [-0.05, -0.01] | -0.04 [-0.06, -0.02] | -0.05 [-0.07, -0.03] |
@@ -189,7 +199,7 @@
 |---|---|---|---|---|---|---|
 | fine-tune from pretrained minus fine-tune from scratch | 0.09 [0.06, 0.15] | 0.04 [0.02, 0.07] | -0.07 [-0.10, -0.05] | -0.01 [-0.02, 0.00] | -0.00 [-0.01, 0.01] | -0.00 [-0.01, 0.00] |
 | fine-tune from pretrained minus tangent + ridge | -0.27 [-0.36, -0.21] | -0.50 [-0.63, -0.41] | -0.91 [-1.13, -0.78] | -0.03 [-0.05, -0.02] | -0.01 [-0.03, 0.01] | -0.04 [-0.07, -0.01] |
-| fine-tune, transductive minus fine-tune from pretrained | -0.24 [-0.32, -0.19] | -0.15 [-0.21, -0.12] | -0.04 [-0.08, -0.01] | -0.03 [-0.05, -0.02] | -0.03 [-0.05, -0.01] | -0.01 [-0.02, 0.00] |
+| fine-tune, transductive (pretrained rate) minus fine-tune from pretrained | -0.24 [-0.32, -0.19] | -0.15 [-0.21, -0.12] | -0.04 [-0.08, -0.01] | -0.03 [-0.05, -0.02] | -0.03 [-0.05, -0.01] | -0.01 [-0.02, 0.00] |
 | fine-tune from scratch minus tangent + ridge | -0.37 [-0.47, -0.30] | -0.54 [-0.69, -0.45] | -0.84 [-1.05, -0.72] | -0.02 [-0.04, -0.01] | -0.01 [-0.03, 0.01] | -0.04 [-0.07, -0.01] |
 | probe, all tokens, pretrained minus probe, all tokens, random encoder | 0.00 [-0.05, 0.06] | -0.04 [-0.08, 0.00] | -0.00 [-0.01, 0.01] | -0.03 [-0.06, -0.01] | -0.03 [-0.05, -0.02] | -0.01 [-0.02, -0.00] |
 | probe, all tokens, pretrained minus tangent + ridge | -0.28 [-0.38, -0.20] | -0.55 [-0.70, -0.46] | -0.80 [-0.99, -0.69] | -0.05 [-0.08, -0.03] | -0.04 [-0.06, -0.01] | -0.04 [-0.08, -0.01] |
@@ -205,10 +215,10 @@
 |---|---|---|---|---|---|---|
 | fine-tune from pretrained beats fine-tune from scratch | 6/8 | 5/8 | 3/8 | 3/8 | 4/8 | 3/8 |
 | fine-tune from pretrained beats tangent + ridge | 0/8 | 0/8 | 0/8 | 2/8 | 2/8 | 1/8 |
-| fine-tune, transductive beats fine-tune from pretrained | 1/8 | 2/8 | 3/8 | 2/8 | 2/8 | 3/8 |
+| fine-tune, transductive (pretrained rate) beats fine-tune from pretrained | 1/8 | 2/8 | 3/8 | 2/8 | 2/8 | 3/8 |
 | fine-tune from scratch beats tangent + ridge | 0/8 | 0/8 | 0/8 | 2/8 | 1/8 | 1/8 |
 | fine-tune from scratch, 1000 steps beats fine-tune from scratch | - | - | 2/8 | - | - | - |
-| fine-tune from transductive encoder, 1000 steps beats fine-tune, transductive | - | - | 2/8 | - | - | - |
+| fine-tune from transductive encoder, 1000 steps beats fine-tune, transductive (pretrained rate) | - | - | 2/8 | - | - | - |
 | fine-tune from transductive encoder, 1000 steps beats fine-tune from scratch, 1000 steps | - | - | 3/8 | - | - | - |
 | fine-tune from transductive encoder, 1000 steps beats tangent + ridge | - | - | 0/8 | - | - | - |
 | probe, all tokens, pretrained beats probe, all tokens, random encoder | 2/8 | 2/8 | 3/8 | 3/8 | 2/8 | 3/8 |
@@ -226,7 +236,7 @@
 | site mean (constant) | -0.05 [-0.06, -0.05] | -0.90 [-1.20, -0.76] | 5.51 [5.16, 5.90] | 0.00 [0.00, 0.00] |
 | tangent + ridge | 0.28 [0.24, 0.31] | -0.11 [-0.28, -0.02] | 4.42 [4.13, 4.73] | 0.57 [0.51, 0.62] |
 | fine-tune from scratch | -0.08 [-0.10, -0.07] | -0.95 [-1.26, -0.80] | 5.56 [5.21, 5.95] | -0.03 [-0.09, 0.02] |
-| fine-tune, transductive | -0.14 [-0.16, -0.12] | -1.06 [-1.39, -0.90] | 5.67 [5.32, 6.08] | -0.05 [-0.10, 0.01] |
+| fine-tune, transductive (pretrained rate) | -0.14 [-0.16, -0.12] | -1.06 [-1.39, -0.90] | 5.67 [5.32, 6.08] | -0.05 [-0.10, 0.01] |
 | fine-tune from scratch, 1000 steps | -0.26 [-0.31, -0.23] | -1.57 [-2.09, -1.33] | 5.97 [5.60, 6.38] | -0.07 [-0.14, -0.00] |
 | fine-tune from transductive encoder, 1000 steps | -0.38 [-0.44, -0.33] | -2.54 [-3.49, -2.10] | 6.30 [5.93, 6.70] | -0.06 [-0.12, 0.01] |
 
@@ -235,7 +245,7 @@
 | difference (age) | pooled R2 | macro R2 | pooled MAE | macro Spearman |
 |---|---|---|---|---|
 | fine-tune from scratch, 1000 steps minus fine-tune from scratch | -0.18 [-0.21, -0.16] | -0.62 [-0.85, -0.51] | 0.41 [0.35, 0.47] | -0.04 [-0.10, 0.03] |
-| fine-tune from transductive encoder, 1000 steps minus fine-tune, transductive | -0.25 [-0.29, -0.21] | -1.48 [-2.17, -1.14] | 0.63 [0.54, 0.72] | -0.02 [-0.07, 0.05] |
+| fine-tune from transductive encoder, 1000 steps minus fine-tune, transductive (pretrained rate) | -0.25 [-0.29, -0.21] | -1.48 [-2.17, -1.14] | 0.63 [0.54, 0.72] | -0.02 [-0.07, 0.05] |
 | fine-tune from transductive encoder, 1000 steps minus fine-tune from scratch, 1000 steps | -0.12 [-0.15, -0.09] | -0.96 [-1.44, -0.71] | 0.33 [0.25, 0.41] | 0.01 [-0.05, 0.07] |
 | fine-tune from transductive encoder, 1000 steps minus tangent + ridge | -0.66 [-0.73, -0.60] | -2.43 [-3.29, -2.04] | 1.88 [1.69, 2.06] | -0.63 [-0.70, -0.54] |
 

@@ -20,6 +20,8 @@ ARMS = (
     "probe_flat",
     "ft_scratch",
     "ft_pre",
+    "ft_pre_trans",
+    "ft_trans",
 )
 SITE_CSV = (
     "site,n,age_mean,age_sd,fiq_mean,fiq_sd,share_dx1,share_sex1,frames_min,"
@@ -124,7 +126,14 @@ def test_summarise_report_and_figures_scripts_run_end_to_end(tmp_path, monkeypat
     ):
         assert (out / name).exists(), name
     run_main(load_script("report"), monkeypatch, "--results", str(out))
-    assert "pooled R2" in (out / "tables.md").read_text()
+    text = (out / "tables.md").read_text()
+    assert "pooled R2" in text
+    assert "conformal intervals of the fine-tunes" in text
+    head = "### age: 90 percent conformal intervals, pooled coverage (width)"
+    assert "fine-tune" not in text.split(head)[1].split("###")[0]
+    assert "fine-tune, transductive (own rate)" in text
+    diffs = json.loads((out / "summary.json").read_text())["loso"]["diffs"]["age"]
+    assert {"ft_trans - ft_pre", "ft_trans - ft_pre_trans"} <= set(diffs)
     run_main(load_script("figures"), monkeypatch, "--results", str(out))
     for name in ("fig_learning_curves.png", "fig_coverage.png", "fig_pretrain.png"):
         assert 1000 < (out / name).stat().st_size < 300_000
