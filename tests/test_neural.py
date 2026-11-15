@@ -204,15 +204,39 @@ def test_select_lrs_picks_the_rate_with_the_lowest_validation_error(monkeypatch)
     assert err < 0.8 * np.mean(y_val**2)
 
 
-def test_transductive_start_has_its_own_rate_and_the_old_one_is_an_ablation():
+def test_transductive_start_has_its_own_rate_and_the_old_one_is_an_ablation(
+    monkeypatch,
+):
     cohort, x, fold = synth()
+    monkeypatch.setitem(LR_GRIDS, "ft_pre", (1e-4,))
+    monkeypatch.setitem(LR_GRIDS, "ft_trans", (3e-4,))
     store = run(x, cohort, fold, trans=random_state(SMALL, 7))
-    lr = store.extra["lr"]
-    own = [r for r in store.rows if r["arm"] == "ft_trans"]
-    reused = [r for r in store.rows if r["arm"] == "ft_pre_trans"]
-    assert len(own) == len(reused) == 4
-    assert all(r["lr"] == lr[f"ft_trans|{r['target']}"] for r in own)
-    assert all(r["lr"] == lr[f"ft_pre|{r['target']}"] for r in reused)
+    assert store.extra["lr"]["ft_trans|age"] == 3e-4
+    assert store.extra["lr"]["ft_pre|age"] == 1e-4
+
+    def rates(arm):
+        return {r["lr"] for r in store.rows if r["arm"] == arm}
+
+    assert rates("ft_trans") == {3e-4}
+    assert rates("ft_pre") == rates("ft_pre_trans") == {1e-4}
+
+
+def test_each_start_is_searched_from_its_own_weights(monkeypatch):
+    cohort, x, fold = synth()
+    trans = random_state(SMALL, 7)
+    seen, real = [], neural.select_lrs
+
+    def spy(x, y_all, lab, val, states, *args, **kwargs):
+        seen.append(states)
+        return real(x, y_all, lab, val, states, *args, **kwargs)
+
+    monkeypatch.setattr(neural, "select_lrs", spy)
+    run(x, cohort, fold, trans=trans)
+    (states,) = seen
+    assert set(states) == {"ft_pre", "ft_scratch", "ft_trans"}
+    assert states["ft_trans"] is trans
+    assert states["ft_scratch"] is None
+    assert states["ft_pre"] is not None and states["ft_pre"] is not trans
 
 
 def test_transductive_arms_share_one_fit_when_their_rates_agree(monkeypatch):
