@@ -12,6 +12,7 @@ pip install -q -e . --no-deps
 
 python scripts/fetch_data.py --out "$DATA" --raw-dir "$WORK/nilearn" --results results
 python scripts/check_tangent.py --data "$DATA" --out results/tangent_check.json
+python scripts/calibration_overlap.py --data "$DATA" --out results/calibration_overlap.json
 python scripts/run_baselines.py --data "$DATA" --out "$WORK/runs_bl"
 
 python scripts/run_neural.py --data "$DATA" --out "$WORK/runs_nn" --ckpt "$WORK/ckpt" --phase trans

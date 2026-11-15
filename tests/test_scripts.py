@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
+from connpre.data import save_cohort, synthetic_cohort
 from connpre.protocol import N_ALL
 from connpre.results import RunStore
 
@@ -158,3 +159,47 @@ def test_long_fine_tunes_get_their_own_summary_and_tables(tmp_path, monkeypatch)
     run_main(load_script("report"), monkeypatch, "--results", str(out))
     text = (out / "tables.md").read_text()
     assert "Longer fine-tuning" in text and "1000 steps" in text
+
+
+def test_calibration_overlap_script_counts_the_subjects_it_drops(tmp_path, monkeypatch):
+    cohort = synthetic_cohort(sizes=(60, 50, 40, 40, 30), n_roi=12, t=64, seed=5)
+    data, out = tmp_path / "cohort.npz", tmp_path / "overlap.json"
+    save_cohort(str(data), cohort)
+    run_main(
+        load_script("calibration_overlap"),
+        monkeypatch,
+        *("--data", str(data), "--out", str(out)),
+        *("--n-cal", "40", "--lr-n-lab", "20", "--min-site", "40"),
+    )
+    result = json.loads(out.read_text())
+    assert set(result["folds"]) == {"S0", "S1", "S2", "S3"}
+    runs = [r for f in result["folds"].values() for r in f["seeds"]]
+    assert len(runs) == 4 * 5
+    assert all(r["kept"] + r["in_labelled"] + r["in_validation"] == 40 for r in runs)
+    assert 0 < result["dropped"]["min"] <= result["dropped"]["max"] < 40
+    assert result["kept"]["min"] + result["dropped"]["max"] == 40
+
+
+def test_run_neural_script_runs_the_chain_on_synthetic_data(tmp_path, monkeypatch):
+    cohort = synthetic_cohort(sizes=(120, 90, 80, 60, 40), n_roi=12, t=64, seed=5)
+    data = tmp_path / "cohort.npz"
+    save_cohort(str(data), cohort)
+    script = load_script("run_neural")
+    common = (
+        *("--data", str(data), "--out", str(tmp_path / "runs")),
+        *("--ckpt", str(tmp_path / "ckpt"), "--scale", "0.01"),
+    )
+    run_main(script, monkeypatch, *common, "--phase", "trans")
+    run_main(
+        script,
+        monkeypatch,
+        *common,
+        *("--folds", "S0", "--seeds", "0", "--sizes", "50,100"),
+        *("--n-cal", "60", "--min-site", "80"),
+    )
+    assert (tmp_path / "ckpt" / "trans.pt").exists()
+    meta = json.loads((tmp_path / "runs" / "loso-S0.json").read_text())
+    arms = {r["arm"] for r in meta["rows"]}
+    assert {"ft_pre", "ft_scratch", "ft_trans", "ft_pre_trans", "probe_flat"} <= arms
+    assert meta["extra"]["lr_subjects"]["labelled"] == 100
+    assert all(r["n_cal"] <= 60 for r in meta["rows"])

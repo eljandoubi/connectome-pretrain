@@ -1,0 +1,312 @@
+{
+ "n_cal": 100,
+ "lr_n_labelled": 100,
+ "dropped": {
+  "min": 24,
+  "mean": 35.9,
+  "max": 46
+ },
+ "kept": {
+  "min": 54,
+  "mean": 64.1,
+  "max": 76
+ },
+ "folds": {
+  "NYU": {
+   "n_train": 615,
+   "validation_site": "UM_1",
+   "n_validation": 82,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 22,
+     "in_validation": 14,
+     "kept": 64
+    },
+    {
+     "seed": 1,
+     "in_labelled": 14,
+     "in_validation": 13,
+     "kept": 73
+    },
+    {
+     "seed": 2,
+     "in_labelled": 16,
+     "in_validation": 14,
+     "kept": 70
+    },
+    {
+     "seed": 3,
+     "in_labelled": 11,
+     "in_validation": 13,
+     "kept": 76
+    },
+    {
+     "seed": 4,
+     "in_labelled": 18,
+     "in_validation": 13,
+     "kept": 69
+    }
+   ]
+  },
+  "UM_1": {
+   "n_train": 705,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 14,
+     "in_validation": 25,
+     "kept": 61
+    },
+    {
+     "seed": 1,
+     "in_labelled": 12,
+     "in_validation": 24,
+     "kept": 64
+    },
+    {
+     "seed": 2,
+     "in_labelled": 13,
+     "in_validation": 25,
+     "kept": 62
+    },
+    {
+     "seed": 3,
+     "in_labelled": 14,
+     "in_validation": 24,
+     "kept": 62
+    },
+    {
+     "seed": 4,
+     "in_labelled": 17,
+     "in_validation": 24,
+     "kept": 59
+    }
+   ]
+  },
+  "USM": {
+   "n_train": 720,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 22,
+     "in_validation": 24,
+     "kept": 54
+    },
+    {
+     "seed": 1,
+     "in_labelled": 12,
+     "in_validation": 24,
+     "kept": 64
+    },
+    {
+     "seed": 2,
+     "in_labelled": 14,
+     "in_validation": 23,
+     "kept": 63
+    },
+    {
+     "seed": 3,
+     "in_labelled": 14,
+     "in_validation": 23,
+     "kept": 63
+    },
+    {
+     "seed": 4,
+     "in_labelled": 15,
+     "in_validation": 24,
+     "kept": 61
+    }
+   ]
+  },
+  "UCLA_1": {
+   "n_train": 723,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 16,
+     "in_validation": 24,
+     "kept": 60
+    },
+    {
+     "seed": 1,
+     "in_labelled": 9,
+     "in_validation": 23,
+     "kept": 68
+    },
+    {
+     "seed": 2,
+     "in_labelled": 19,
+     "in_validation": 23,
+     "kept": 58
+    },
+    {
+     "seed": 3,
+     "in_labelled": 16,
+     "in_validation": 24,
+     "kept": 60
+    },
+    {
+     "seed": 4,
+     "in_labelled": 15,
+     "in_validation": 24,
+     "kept": 61
+    }
+   ]
+  },
+  "PITT": {
+   "n_train": 737,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 12,
+     "in_validation": 23,
+     "kept": 65
+    },
+    {
+     "seed": 1,
+     "in_labelled": 12,
+     "in_validation": 23,
+     "kept": 65
+    },
+    {
+     "seed": 2,
+     "in_labelled": 15,
+     "in_validation": 22,
+     "kept": 63
+    },
+    {
+     "seed": 3,
+     "in_labelled": 13,
+     "in_validation": 23,
+     "kept": 64
+    },
+    {
+     "seed": 4,
+     "in_labelled": 15,
+     "in_validation": 24,
+     "kept": 61
+    }
+   ]
+  },
+  "MAX_MUN": {
+   "n_train": 743,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 10,
+     "in_validation": 23,
+     "kept": 67
+    },
+    {
+     "seed": 1,
+     "in_labelled": 12,
+     "in_validation": 23,
+     "kept": 65
+    },
+    {
+     "seed": 2,
+     "in_labelled": 7,
+     "in_validation": 23,
+     "kept": 70
+    },
+    {
+     "seed": 3,
+     "in_labelled": 11,
+     "in_validation": 23,
+     "kept": 66
+    },
+    {
+     "seed": 4,
+     "in_labelled": 11,
+     "in_validation": 23,
+     "kept": 66
+    }
+   ]
+  },
+  "TRINITY": {
+   "n_train": 743,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 11,
+     "in_validation": 23,
+     "kept": 66
+    },
+    {
+     "seed": 1,
+     "in_labelled": 11,
+     "in_validation": 24,
+     "kept": 65
+    },
+    {
+     "seed": 2,
+     "in_labelled": 11,
+     "in_validation": 24,
+     "kept": 65
+    },
+    {
+     "seed": 3,
+     "in_labelled": 16,
+     "in_validation": 22,
+     "kept": 62
+    },
+    {
+     "seed": 4,
+     "in_labelled": 16,
+     "in_validation": 23,
+     "kept": 61
+    }
+   ]
+  },
+  "YALE": {
+   "n_train": 746,
+   "validation_site": "NYU",
+   "n_validation": 172,
+   "seeds": [
+    {
+     "seed": 0,
+     "in_labelled": 9,
+     "in_validation": 22,
+     "kept": 69
+    },
+    {
+     "seed": 1,
+     "in_labelled": 13,
+     "in_validation": 23,
+     "kept": 64
+    },
+    {
+     "seed": 2,
+     "in_labelled": 15,
+     "in_validation": 22,
+     "kept": 63
+    },
+    {
+     "seed": 3,
+     "in_labelled": 13,
+     "in_validation": 22,
+     "kept": 65
+    },
+    {
+     "seed": 4,
+     "in_labelled": 17,
+     "in_validation": 23,
+     "kept": 60
+    }
+   ]
+  }
+ }
+}
