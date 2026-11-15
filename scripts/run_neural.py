@@ -8,6 +8,7 @@ usage:
 import argparse
 import json
 import time
+from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +16,7 @@ import torch
 
 from connpre.data import load_cohort
 from connpre.finetune import STEPS
-from connpre.model import ModelConfig
+from connpre.model import ModelConfig, RoiTransformer, count_params
 from connpre.neural import N_MONITOR, fold_neural, pretrain_on
 from connpre.pretrain import PretrainConfig
 from connpre.protocol import insite_folds, loso_folds
@@ -59,6 +60,14 @@ def main():
         state, history = pretrain_on(x, train, {"val": monitor}, *args_pre)
         torch.save(state, ckpt / "trans.pt")
         (out / "pretrain-trans.json").write_text(json.dumps(history) + "\n")
+        info = {
+            "parameters": count_params(RoiTransformer(model_cfg)),
+            "model": asdict(model_cfg),
+            "pretrain": asdict(pre_cfg),
+            "device": torch.cuda.get_device_name(0) if device == "cuda" else "cpu",
+            "torch": torch.__version__,
+        }
+        (out / "model.json").write_text(json.dumps(info, indent=1) + "\n")
         print("trans pretrained", round(time.time() - started), "s", history[-1])
         return
 

@@ -5,6 +5,7 @@ usage: python scripts/summarise.py --runs work/runs_bl work/runs_nn --out result
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 from connpre.results import load_merged, write_rows_csv
@@ -30,7 +31,7 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    summary, rows, curves, lrs = {}, [], {}, {}
+    summary, rows, curves, lrs, timing = {}, [], {}, {}, {}
     for mode in ("loso", "insite"):
         folds = load_merged(args.runs, mode)
         if not folds:
@@ -42,6 +43,8 @@ def main():
                 curves[f"{mode}-{f['fold']}"] = extra["pretrain"]
             if "lr" in extra:
                 lrs[f"{mode}-{f['fold']}"] = extra["lr"]
+            if "seconds" in extra:
+                timing[f"{mode}-{f['fold']}"] = extra["seconds"]
         summary[mode] = summarise_mode(folds, args.n_boot, args.seed)
         print(mode, "folds", len(folds), "subjects", summary[mode]["n_subjects"])
 
@@ -51,9 +54,14 @@ def main():
     if neural:
         write_rows_csv(neural, str(out / "runs_neural.csv"))
     write_rows_csv(fold_means(rows), str(out / "per_fold.csv"))
-    (out / "summary.json").write_text(json.dumps(summary, indent=1) + "\n")
+    (out / "summary.json").write_text(json.dumps(summary) + "\n")
     (out / "pretrain_curves.json").write_text(json.dumps(curves) + "\n")
     (out / "learning_rates.json").write_text(json.dumps(lrs, indent=1) + "\n")
+    (out / "timing_seconds.json").write_text(json.dumps(timing, indent=1) + "\n")
+    for directory in args.runs:
+        for name in ("model.json", "pretrain-trans.json"):
+            if (Path(directory) / name).exists():
+                shutil.copy(Path(directory) / name, out / name)
     print("wrote", out)
 
 
